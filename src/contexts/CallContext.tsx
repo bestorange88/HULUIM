@@ -84,8 +84,24 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     incomingCallRef.current = incomingCall;
   }, [incomingCall]);
 
+  // Listen for auth state changes to handle session restoration
   useEffect(() => {
+    // Get initial user
     getCurrentUser();
+    
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[CallContext] Auth state changed:', event, 'user:', session?.user?.id);
+      if (session?.user) {
+        setCurrentUserId(session.user.id);
+      } else {
+        setCurrentUserId(null);
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
