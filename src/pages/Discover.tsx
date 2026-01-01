@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Send, Image as ImageIcon, TrendingUp, Clock, X, Eye, Sparkles, Trash2, Scan, Video, Play, Gift, Camera, Upload } from "lucide-react";
+import { Heart, MessageCircle, Send, Image as ImageIcon, X, Sparkles, Trash2, Scan, Video, Play, Camera, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { MomentTags } from "@/components/moments/MomentTags";
 import { AvatarWithFrame } from "@/components/avatar/AvatarWithFrame";
@@ -41,23 +41,12 @@ interface Moment {
   user_liked?: boolean;
 }
 
-interface NewsItem {
-  id: string;
-  title: string;
-  description?: string;
-  source: string;
-  publishTime: string;
-  views?: string;
-  imageUrl?: string;
-}
 
 export default function Discover() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [moments, setMoments] = useState<Moment[]>([]);
-  const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newsLoading, setNewsLoading] = useState(true);
   const [newMomentContent, setNewMomentContent] = useState("");
   const [showPostDialog, setShowPostDialog] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -68,7 +57,6 @@ export default function Discover() {
   const [uploadMode, setUploadMode] = useState<'local' | 'camera' | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const cameraVideoInputRef = useRef<HTMLInputElement>(null);
-  const [officialWebsiteUrl, setOfficialWebsiteUrl] = useState<string>("https://k3.hualinup.com/");
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerImages, setViewerImages] = useState<string[]>([]);
   const [viewerInitialIndex, setViewerInitialIndex] = useState(0);
@@ -80,8 +68,6 @@ export default function Discover() {
 
   useEffect(() => {
     fetchMoments();
-    fetchNews();
-    fetchPlatformSettings();
   }, []);
 
   useEffect(() => {
@@ -91,39 +77,7 @@ export default function Discover() {
     };
   }, [previewUrls, videoPreviewUrl]);
 
-  const fetchPlatformSettings = async () => {
-    const { data } = await supabase
-      .from("platform_settings")
-      .select("*")
-      .eq("key", "official_website_url")
-      .maybeSingle();
-    
-    if (data?.value) {
-      setOfficialWebsiteUrl(data.value);
-    }
-  };
-
-  const fetchNews = async () => {
-    try {
-      setNewsLoading(true);
-      const { data, error } = await supabase.functions.invoke('fetch-news', {
-        body: { page: 1, pageSize: 4 }
-      });
-
-      if (error) throw error;
-      
-      if (data?.success && data?.data) {
-        setNews(data.data.slice(0, 4));
-      }
-    } catch (error) {
-      console.error("Error fetching news:", error);
-      setNews([]);
-    } finally {
-      setNewsLoading(false);
-    }
-  };
-
-  const fetchMoments = async () => {
+  const fetchMoments= async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -450,23 +404,11 @@ export default function Discover() {
     return date.toLocaleDateString();
   };
 
-  const formatNewsTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / 3600000);
-    
-    if (diffHours < 1) return "刚刚";
-    if (diffHours < 24) return `${diffHours}小时前`;
-    return date.toLocaleDateString();
-  };
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
       <Header 
         title="发现" 
-        linkUrl={officialWebsiteUrl}
-        linkLabel=""
         rightContent={
           <Button
             variant="ghost"
@@ -480,74 +422,6 @@ export default function Discover() {
       />
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-4 pb-20">
-          {/* Hot News Section */}
-          <Card className="overflow-hidden shadow-card">
-            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-accent/10 border-b border-border">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold">热点资讯</h2>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/news')}
-                className="text-primary text-sm"
-              >
-                更多资讯 →
-              </Button>
-            </div>
-            <div className="divide-y divide-border">
-              {newsLoading ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  加载中...
-                </div>
-              ) : news.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  暂无资讯
-                </div>
-              ) : (
-                news.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex gap-3 p-3 hover:bg-accent/50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/news/${item.id}`)}
-                  >
-                    {item.imageUrl && (
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="w-24 h-20 object-cover rounded-lg flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium line-clamp-2 mb-1">
-                        {item.title}
-                      </h3>
-                      {item.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-1 mb-2">
-                          {item.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>{item.source}</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {formatNewsTime(item.publishTime)}
-                        </span>
-                        {item.views && (
-                          <span className="flex items-center gap-1">
-                            <Eye className="h-3 w-3" />
-                            {item.views}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-
           {/* Create Moment Card */}
           <Card className="shadow-card">
             <div 
