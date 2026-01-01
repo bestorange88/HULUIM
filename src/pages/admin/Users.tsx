@@ -42,6 +42,7 @@ interface UserProfile {
   };
   account_type?: 'normal' | 'test';
   is_customer_service?: boolean;
+  last_login_ip?: string | null;
 }
 
 export default function AdminUsers() {
@@ -131,21 +132,22 @@ export default function AdminUsers() {
   };
 
   const handleExport = () => {
-    const exportData = filteredUsers.map(user => ({
-      '用户ID': user.id,
-      '用户名': user.username,
-      '昵称': user.display_name,
-      '手机号': user.phone || '-',
-      '邀请码': user.invite_code || '-',
-      '推荐人': user.referrer ? `${user.referrer.display_name}(@${user.referrer.username})` : '-',
-      '账户类型': user.account_type === 'test' ? '测试账户' : '正常用户',
-      '会员等级': user.membership_tier || '普通用户',
-      '积分': user.points || 0,
-      '余额': user.balance || 0,
-      '状态': user.status === 'online' ? '在线' : '离线',
-      '注册时间': new Date(user.created_at).toLocaleString('zh-CN'),
-      '最后在线': user.last_seen ? new Date(user.last_seen).toLocaleString('zh-CN') : '从未'
-    }));
+        const exportData = filteredUsers.map(user => ({
+          '用户ID': user.id,
+          '用户名': user.username,
+          '昵称': user.display_name,
+          '手机号': user.phone || '-',
+          '邀请码': user.invite_code || '-',
+          '推荐人': user.referrer ? `${user.referrer.display_name}(@${user.referrer.username})` : '-',
+          '账户类型': user.account_type === 'test' ? '测试账户' : '正常用户',
+          '会员等级': user.membership_tier || '普通用户',
+          '积分': user.points || 0,
+          '余额': user.balance || 0,
+          '状态': user.status === 'online' ? '在线' : '离线',
+          '注册时间': new Date(user.created_at).toLocaleString('zh-CN'),
+          '最后在线': user.last_seen ? new Date(user.last_seen).toLocaleString('zh-CN') : '从未',
+          '登录IP': user.last_login_ip || '-'
+        }));
     
     exportToCSV(exportData, '用户列表');
     toast.success('导出成功');
@@ -441,8 +443,9 @@ export default function AdminUsers() {
                   <TableHead className="whitespace-nowrap px-2 py-2">状态</TableHead>
                   <TableHead className="whitespace-nowrap px-2 py-2">性质</TableHead>
                   <TableHead className="whitespace-nowrap px-2 py-2">注册时间</TableHead>
-                  <TableHead className="whitespace-nowrap px-2 py-2">最后在线</TableHead>
-                  <TableHead className="whitespace-nowrap px-2 py-2 text-right">操作</TableHead>
+                                    <TableHead className="whitespace-nowrap px-2 py-2">最后在线</TableHead>
+                                    <TableHead className="whitespace-nowrap px-2 py-2">登录IP</TableHead>
+                                    <TableHead className="whitespace-nowrap px-2 py-2 text-right">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -496,12 +499,15 @@ export default function AdminUsers() {
                     <TableCell className="whitespace-nowrap px-2 py-2">
                       {new Date(user.created_at).toLocaleDateString('zh-CN')}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap px-2 py-2">
-                      {user.last_seen
-                        ? formatDistanceToNow(new Date(user.last_seen), { addSuffix: true, locale: zhCN })
-                        : '-'}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap px-2 py-2 text-right">
+                                        <TableCell className="whitespace-nowrap px-2 py-2">
+                                          {user.last_seen
+                                            ? formatDistanceToNow(new Date(user.last_seen), { addSuffix: true, locale: zhCN })
+                                            : '-'}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap px-2 py-2">
+                                          <span className="font-mono text-xs text-muted-foreground">{user.last_login_ip || '-'}</span>
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap px-2 py-2 text-right">
                       <div className="flex justify-end gap-1">
                         <Button variant="outline" size="sm" className="h-6 px-2 text-[10px]" onClick={() => openEditDialog(user)}>
                           <Edit className="h-3 w-3 mr-0.5" />编辑

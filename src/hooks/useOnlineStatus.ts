@@ -8,11 +8,12 @@ import { supabase } from '@/integrations/supabase/client';
 export function useOnlineStatus(userId: string | null) {
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isUpdatingRef = useRef(false);
+  const hasRecordedIpRef = useRef(false);
 
   useEffect(() => {
     if (!userId) return;
 
-    const updateOnlineStatus = async (status: 'online' | 'offline') => {
+    const updateOnlineStatus = async (status: 'online' | 'offline', includeIp: boolean = false) => {
       if (isUpdatingRef.current) return;
       isUpdatingRef.current = true;
 
@@ -21,6 +22,21 @@ export function useOnlineStatus(userId: string | null) {
           status,
           last_seen: new Date().toISOString(),
         };
+
+        // Record IP address on first online status update (login)
+        if (includeIp && !hasRecordedIpRef.current) {
+          try {
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            if (ipData.ip) {
+              updates.last_login_ip = ipData.ip;
+              hasRecordedIpRef.current = true;
+              console.log('[OnlineStatus] Recorded login IP:', ipData.ip);
+            }
+          } catch (ipError) {
+            console.warn('[OnlineStatus] Failed to get IP address:', ipError);
+          }
+        }
 
         await supabase
           .from('profiles')
@@ -35,8 +51,8 @@ export function useOnlineStatus(userId: string | null) {
       }
     };
 
-    // Set online immediately on mount
-    updateOnlineStatus('online');
+    // Set online immediately on mount and record IP address
+    updateOnlineStatus('online', true);
 
     // Update last_seen every 30 seconds while user is active
     heartbeatIntervalRef.current = setInterval(() => {
