@@ -266,6 +266,9 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
         },
         onRemoteStreamAdd: (stream) => {
           console.log('[CallInterface] Remote stream added');
+          // Stop timeout and ringback when stream is received (call is truly connected)
+          stopCallTimeout();
+          stopRingback();
           setCallStatus('connected');
           startCallTimer();
           
