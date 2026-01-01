@@ -18,9 +18,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "logo.png", "logo-192.png", "logo-512.png", "avatars/*"],
       manifest: {
-        name: "Alo生态",
-        short_name: "Alo",
-        description: "Alo生态 - 社交即时通讯平台",
+        name: "迅达",
+        short_name: "迅达",
+        description: "迅达 - 即时通讯应用",
         theme_color: "#0f172a",
         background_color: "#0f172a",
         display: "standalone",
