@@ -6,10 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import CallQualityIndicator, { CallQuality } from './CallQualityIndicator';
 import { trtcService } from '@/services/trtcService';
-import { 
-  setupAndroidVideo,
-  setupAndroidAudio
-} from '@/utils/androidCompat';
+import { setupAndroidAudio } from '@/utils/androidCompat';
 
 interface CallInterfaceProps {
   conversationId: string;
@@ -53,8 +50,6 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
   const [isEndingCall, setIsEndingCall] = useState(false);
   const [remoteUserId, setRemoteUserId] = useState<string | null>(null);
 
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isCleanedUpRef = useRef(false);
   const initializingRef = useRef(false);
@@ -383,8 +378,7 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
         return;
       }
 
-      if (callType === 'video' && localVideoRef.current) {
-        setupAndroidVideo(localVideoRef.current);
+      if (callType === 'video') {
         trtcService.playLocalStream('local-video-container');
         console.log('[CallInterface] Local video preview started');
       }
@@ -559,6 +553,7 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
       </Button>
       
       <div className="flex-1 relative bg-muted flex items-center justify-center overflow-hidden">
+        {/* Remote video container - TRTC SDK will create video element inside */}
         {callType === 'video' && (
           <div
             id="remote-video-container"
@@ -569,24 +564,7 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
               zIndex: hasRemoteVideo ? 1 : 0,
               transition: 'opacity 0.3s ease-in-out'
             }}
-          >
-            <video
-              ref={remoteVideoRef}
-              autoPlay
-              playsInline
-              muted={false}
-              className="w-full h-full object-cover"
-              onLoadedMetadata={() => {
-                console.log('[CallInterface] Remote video metadata loaded');
-                setHasRemoteVideo(true);
-              }}
-              onPlaying={() => {
-                console.log('[CallInterface] Remote video playing');
-                setRemoteVideoPlaying(true);
-                setHasRemoteVideo(true);
-              }}
-            />
-          </div>
+          />
         )}
 
         {(callType === 'audio' || !hasRemoteVideo) && (
@@ -617,22 +595,29 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
           style={{ display: 'none', position: 'absolute', width: 0, height: 0 }}
         />
 
+        {/* Local video container - TRTC SDK will create video element inside */}
         {callType === 'video' && (
           <div 
             id="local-video-container"
             className="absolute top-16 right-4 w-32 h-44 rounded-lg overflow-hidden shadow-lg bg-black border-2 border-white/30"
             style={{ zIndex: 10 }}
-          >
-            <video
-              ref={localVideoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-              style={{ transform: 'scaleX(-1)' }}
-            />
-          </div>
+          />
         )}
+        
+        {/* CSS for TRTC SDK generated video elements */}
+        <style>{`
+          #remote-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          #local-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+          }
+        `}</style>
 
         <div className="absolute top-4 left-4 bg-background/80 backdrop-blur-sm px-4 py-2 rounded-lg">
           <p className="text-sm font-medium">
