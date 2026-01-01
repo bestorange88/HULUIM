@@ -457,7 +457,7 @@ export default function Conversations() {
                       size="md"
                     />
                   </div>
-                  {conversation.unreadCount && conversation.unreadCount > 0 && (
+                  {(conversation.unreadCount ?? 0) > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[11px] rounded-full flex items-center justify-center shadow-sm z-10">
                       {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                     </span>
