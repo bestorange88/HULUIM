@@ -181,6 +181,14 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Fix Radix Dialog scroll lock compensation causing dialog offset on mobile
+     When Radix opens a dialog, it adds padding-right to body to compensate for scrollbar removal.
+     On mobile devices without visible scrollbars, this causes dialogs to appear offset to the right. */
+  body[data-scroll-locked] {
+    padding-right: 0 !important;
+    --removed-body-scroll-bar-size: 0px !important;
+  }
+
   /* Allow text selection in input/textarea */
   input, textarea, [contenteditable="true"] {
     -webkit-user-select: text;
