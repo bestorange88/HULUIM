@@ -406,62 +406,62 @@ export default function Discover() {
 
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-hidden">
+    <div className="flex flex-col h-full bg-gradient-to-b from-background to-muted/20 overflow-hidden">
       <Header 
-        title="发现" 
+        title="朋友圈" 
         rightContent={
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/scan-qr")}
-            className="text-foreground"
+            className="text-foreground hover:bg-primary/10"
           >
             <Scan className="h-5 w-5" />
           </Button>
         }
       />
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-4 pb-20">
+        <div className="p-4 space-y-4 pb-24">
           {/* Create Moment Card */}
-          <Card className="shadow-card">
+          <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm overflow-hidden">
             <div 
-              className="p-4 flex items-center gap-3 cursor-pointer hover:bg-accent/5 transition-colors"
+              className="p-4 flex items-center gap-4 cursor-pointer hover:bg-accent/5 transition-all duration-200"
               onClick={() => setShowPostDialog(true)}
             >
               <div className="flex-shrink-0">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20">
-                    <Sparkles className="h-5 w-5 text-primary" />
+                <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
+                    <Sparkles className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <p className="text-muted-foreground flex-1">分享你的想法...</p>
-              <div className="flex gap-2">
+              <div className="flex-1">
+                <p className="text-muted-foreground text-sm">分享你的想法...</p>
+              </div>
+              <div className="flex gap-1">
                 <Button 
                   variant="ghost" 
-                  size="sm" 
-                  className="text-primary"
+                  size="icon"
+                  className="h-9 w-9 text-primary hover:bg-primary/10 rounded-full"
                   onClick={(e) => {
                     e.stopPropagation();
                     setUploadMode('local');
                     setShowPostDialog(true);
                   }}
                 >
-                  <Upload className="h-4 w-4 mr-1" />
-                  本地上传
+                  <Upload className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="ghost" 
-                  size="sm" 
-                  className="text-accent"
+                  size="icon"
+                  className="h-9 w-9 text-accent hover:bg-accent/10 rounded-full"
                   onClick={(e) => {
                     e.stopPropagation();
                     setUploadMode('camera');
                     setShowPostDialog(true);
                   }}
                 >
-                  <Camera className="h-4 w-4 mr-1" />
-                  实时拍摄
+                  <Camera className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -642,16 +642,19 @@ export default function Discover() {
           </Card>
 
           {/* Moments Feed */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold px-1">朋友圈</h2>
+          <div className="space-y-3">
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                加载中...
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-3"></div>
+                <p className="text-sm">加载中...</p>
               </div>
             ) : moments.length === 0 ? (
-              <Card className="p-8 text-center shadow-card">
-                <p className="text-muted-foreground">暂无动态</p>
-                <p className="text-sm text-muted-foreground mt-2">
+              <Card className="p-8 text-center shadow-lg border-0 bg-card/80 backdrop-blur-sm">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                  <Sparkles className="h-8 w-8 text-primary/60" />
+                </div>
+                <p className="text-foreground font-medium">暂无动态</p>
+                <p className="text-sm text-muted-foreground mt-1">
                   快来发布第一条动态吧！
                 </p>
               </Card>
@@ -659,21 +662,21 @@ export default function Discover() {
               moments.map((moment) => (
                 <Card 
                   key={moment.id} 
-                  className="p-4 shadow-card cursor-pointer hover:bg-accent/5 transition-colors"
+                  className="shadow-lg border-0 bg-card/80 backdrop-blur-sm overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-200"
                   onClick={() => navigate(`/moment/${moment.id}`)}
                 >
-                  <div className="flex gap-3">
+                  <div className="p-4 flex gap-3">
                     <AvatarWithFrame
                       avatarUrl={moment.profiles?.avatar_url}
                       displayName={moment.profiles?.display_name}
                       frameStyle={moment.profiles?.avatar_frame || "none"}
                       size="md"
-                      className="cursor-pointer"
+                      className="cursor-pointer flex-shrink-0"
                     />
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold text-sm">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold text-sm text-foreground">
                           {moment.profiles?.display_name || moment.profiles?.username}
                         </h3>
                         <div className="flex items-center gap-2">
@@ -684,31 +687,32 @@ export default function Discover() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6"
+                              className="h-7 w-7 hover:bg-destructive/10 rounded-full"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setDeletingMoment(moment.id);
                               }}
                             >
-                              <Trash2 className="h-3 w-3 text-destructive" />
+                              <Trash2 className="h-3.5 w-3.5 text-destructive/70" />
                             </Button>
                           )}
                         </div>
                       </div>
 
-                      <p className="text-sm whitespace-pre-wrap mb-3">
+                      <p className="text-sm whitespace-pre-wrap mb-3 text-foreground/90 leading-relaxed">
                         {moment.content}
                       </p>
 
                       {moment.images && moment.images.length > 0 && (
-                        <div className={`grid gap-2 mb-3 ${
-                          moment.images.length === 1 ? "grid-cols-1" :
-                          moment.images.length === 2 ? "grid-cols-2" :
-                          "grid-cols-3"
+                        <div className={`grid gap-1.5 mb-3 ${
+                          moment.images.length === 1 ? "grid-cols-1 max-w-[240px]" :
+                          moment.images.length === 2 ? "grid-cols-2 max-w-[280px]" :
+                          moment.images.length === 4 ? "grid-cols-2 max-w-[280px]" :
+                          "grid-cols-3 max-w-[320px]"
                         }`}>
                           {moment.images.map((img, idx) => (
                             isVideoUrl(img) ? (
-                              <div key={idx} className="relative aspect-square bg-black rounded-lg overflow-hidden">
+                              <div key={idx} className="relative aspect-square bg-black rounded-xl overflow-hidden shadow-sm">
                                 <video
                                   src={img}
                                   className="w-full h-full object-cover"
@@ -722,8 +726,10 @@ export default function Discover() {
                                     }
                                   }}
                                 />
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                  <Play className="h-12 w-12 text-white/80" />
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/20">
+                                  <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                                    <Play className="h-6 w-6 text-white ml-0.5" />
+                                  </div>
                                 </div>
                               </div>
                             ) : (
@@ -731,9 +737,7 @@ export default function Discover() {
                                 key={idx}
                                 src={img}
                                 alt=""
-                                className={`w-full ${
-                                  moment.images.length === 1 ? "max-w-xs aspect-square" : "aspect-square"
-                                } object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity`}
+                                className="w-full aspect-square object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
                                 onClick={(e) => handleImageClick(moment.images.filter(i => !isVideoUrl(i)), idx, e)}
                               />
                             )
@@ -741,11 +745,15 @@ export default function Discover() {
                         </div>
                       )}
 
-                      <div className="flex items-center gap-4 pt-2 border-t border-border">
+                      <div className="flex items-center gap-1 pt-3 mt-3 border-t border-border/50">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+                          className={`flex items-center gap-1.5 rounded-full px-3 transition-all duration-200 ${
+                            moment.user_liked 
+                              ? "text-primary bg-primary/10" 
+                              : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                          }`}
                           disabled={likingMomentId === moment.id}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -753,21 +761,21 @@ export default function Discover() {
                           }}
                         >
                           <Heart
-                            className={`h-4 w-4 ${moment.user_liked ? "fill-primary text-primary" : ""}`}
+                            className={`h-4 w-4 transition-transform ${moment.user_liked ? "fill-primary scale-110" : ""}`}
                           />
-                          <span>{moment.likes_count || 0}</span>
+                          <span className="text-xs font-medium">{moment.likes_count || 0}</span>
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+                          className="flex items-center gap-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-full px-3"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/moment/${moment.id}`);
                           }}
                         >
                           <MessageCircle className="h-4 w-4" />
-                          <span>{moment.comments_count || 0}</span>
+                          <span className="text-xs font-medium">{moment.comments_count || 0}</span>
                         </Button>
                       </div>
                     </div>
@@ -808,22 +816,6 @@ export default function Discover() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Lucky Draw Floating Button */}
-      <div className="fixed right-4 bottom-24 z-40">
-        <button
-          onClick={() => navigate("/lucky-draw")}
-          className="relative flex items-center justify-center w-14 h-14 rounded-full
-                     bg-gradient-to-b from-amber-400 to-red-500 shadow-xl
-                     animate-bounce text-white hover:scale-110 transition-transform"
-          style={{ animationDuration: '2s' }}
-        >
-          <Gift className="w-7 h-7" />
-          <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full text-xs font-bold
-                           bg-yellow-300 text-red-700 shadow">
-            抽
-          </span>
-        </button>
-      </div>
     </div>
   );
 }
