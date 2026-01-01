@@ -1,0 +1,61 @@
+project_id = "fziwcnrrojazlalccwpe"
+
+[functions.admin-users-query]
+verify_jwt = false
+
+[functions.ai-service-unified]
+verify_jwt = false
+
+[functions.create-customer-service]
+verify_jwt = false
+
+[functions.create-ai-assistant]
+verify_jwt = false
+
+[functions.add-ai-assistant-friend]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = true
+
+[functions.transcribe-audio]
+verify_jwt = false
+
+[functions.translate-message]
+verify_jwt = false
+
+[functions.admin-auth]
+verify_jwt = false
+
+[functions.add-customer-service-friend]
+verify_jwt = false
+
+[functions.admin-review-transaction]
+verify_jwt = false
+
+[functions.send-sms-code]
+verify_jwt = false
+
+[functions.sms-auth]
+verify_jwt = false
+
+[functions.admin-batch-register]
+verify_jwt = false
+
+[functions.reset-password]
+verify_jwt = false
+
+[functions.fetch-news]
+verify_jwt = false
+
+[functions.process-referral]
+verify_jwt = false
+
+[functions.admin-financial-reports]
+verify_jwt = false
+
+[functions.get-turn-credentials]
+verify_jwt = false
+
+[functions.export-data]
+verify_jwt = false

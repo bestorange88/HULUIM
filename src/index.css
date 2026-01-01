@@ -1,0 +1,932 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Business Style Design System - Professional and Modern
+   All colors MUST be HSL format for consistency
+*/
+
+@layer base {
+  :root {
+    /* Viewport height variable - set by JS for mobile compatibility */
+    --vh: 1vh;
+    
+    /* Core Colors - Alo Gradient Theme (Cyan to Purple) */
+    --background: 195 25% 96%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Cyan from Alo Logo */
+    --primary: 195 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 195 70% 50%;
+
+    /* Secondary - Subtle Gray with Cyan tint */
+    --secondary: 195 15% 93%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Muted - Neutral Background */
+    --muted: 195 15% 93%;
+    --muted-foreground: 200 15% 47%;
+
+    /* Accent - Purple from Alo Logo */
+    --accent: 265 45% 60%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 265 45% 55%;
+
+    /* Destructive - Error Red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders and Inputs */
+    --border: 195 20% 85%;
+    --input: 195 20% 88%;
+    --ring: 195 70% 55%;
+
+    /* Border Radius - Smooth Modern */
+    --radius: 0.5rem;
+
+    /* Chat Specific */
+    --chat-bg: 195 20% 94%;
+    --message-sent: 195 70% 55%;
+    --message-received: 0 0% 100%;
+    --sidebar-active: 195 70% 55%;
+
+    /* Gradients - Alo Brand Gradient (Cyan to Purple) */
+    --gradient-primary: linear-gradient(135deg, hsl(195 70% 55%) 0%, hsl(265 45% 60%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(265 45% 60%) 0%, hsl(265 45% 70%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(195 25% 98%) 0%, hsl(195 25% 96%) 100%);
+    
+    /* Shadows - Subtle Depth with Cyan tint */
+    --shadow-sm: 0 1px 2px 0 rgba(93, 173, 226, 0.08);
+    --shadow-md: 0 4px 6px -1px rgba(93, 173, 226, 0.15), 0 2px 4px -1px rgba(93, 173, 226, 0.08);
+    --shadow-lg: 0 10px 15px -3px rgba(93, 173, 226, 0.15), 0 4px 6px -2px rgba(93, 173, 226, 0.08);
+    --shadow-xl: 0 20px 25px -5px rgba(93, 173, 226, 0.15), 0 10px 10px -5px rgba(93, 173, 226, 0.06);
+
+    /* Sidebar Colors */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 195 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 195 15% 93%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 195 25% 91%;
+    --sidebar-ring: 195 70% 55%;
+  }
+
+  .dark {
+    /* Dark Mode - Alo Gradient Theme (Cyan to Purple) */
+    --background: 222 47% 11%;
+    --foreground: 195 20% 98%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 195 20% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 195 20% 98%;
+
+    --primary: 195 70% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 195 70% 65%;
+
+    --secondary: 200 25% 17%;
+    --secondary-foreground: 195 20% 98%;
+
+    --muted: 200 25% 17%;
+    --muted-foreground: 200 10% 65%;
+
+    --accent: 265 45% 65%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 265 45% 70%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 25% 17%;
+    --input: 200 25% 17%;
+    --ring: 195 70% 60%;
+
+    --chat-bg: 222 47% 11%;
+    --message-sent: 195 70% 60%;
+    --message-received: 200 25% 17%;
+    --sidebar-active: 195 70% 60%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(195 70% 60%) 0%, hsl(265 45% 65%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(265 45% 65%) 0%, hsl(265 45% 75%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(222 47% 11%) 0%, hsl(222 47% 13%) 100%);
+
+    --sidebar-background: 224 71% 4%;
+    --sidebar-foreground: 195 20% 98%;
+    --sidebar-primary: 195 70% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 25% 17%;
+    --sidebar-accent-foreground: 195 20% 98%;
+    --sidebar-border: 200 25% 17%;
+    --sidebar-ring: 195 70% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    /* Prevent iOS text size adjustment */
+    -webkit-text-size-adjust: 100%;
+    /* Support for safe area insets */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    max-width: 100vw;
+    overflow: hidden;
+    overflow-x: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  
+  /* Prevent any element from causing horizontal overflow */
+  * {
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Disable pull-to-refresh on mobile */
+    overscroll-behavior: none;
+    /* Disable text selection on mobile */
+    -webkit-user-select: none;
+    user-select: none;
+    /* Prevent elastic scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Allow text selection in input/textarea */
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .shadow-professional {
+    box-shadow: var(--shadow-md);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  /* Safe area utilities */
+  .safe-area-top {
+    padding-top: var(--safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: var(--safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: var(--safe-area-inset-right);
+  }
+
+  .safe-area-x {
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+  }
+
+  .safe-area-y {
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+
+  .safe-area-all {
+    padding-top: var(--safe-area-inset-top);
+    padding-right: var(--safe-area-inset-right);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
+  }
+
+  /* Fixed element safe areas */
+  .fixed-top-safe {
+    top: var(--safe-area-inset-top);
+  }
+
+  .fixed-bottom-safe {
+    bottom: var(--safe-area-inset-bottom);
+  }
+
+  /* Mobile touch improvements */
+  .touch-action-pan-y {
+    touch-action: pan-y;
+  }
+
+  .touch-action-none {
+    touch-action: none;
+  }
+
+  /* Prevent tap highlight on mobile */
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Lucky draw winner announcement scroll animation */
+  @keyframes scroll-up {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-50%);
+    }
+  }
+
+  .animate-scroll-up {
+    animation: scroll-up 15s linear infinite;
+  }
+
+  .animate-scroll-up:hover {
+    animation-play-state: paused;
+  }
+
+  /* Safe area support for mobile devices (iOS notch, Android cutouts) */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Android-specific fixes for dialog/modal rendering */
+  @supports (-webkit-touch-callout: none) or (not (-webkit-overflow-scrolling: touch)) {
+    .fixed[role="dialog"],
+    [data-radix-dialog-content],
+    [data-radix-alert-dialog-content] {
+      -webkit-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+  }
+
+  /* Force hardware acceleration for smoother animations on Android */
+  .animate-in,
+  .animate-out {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+
+  /* Prevent text selection and long-press context menu on mobile */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Improve touch scrolling performance */
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+
+  /* ========================================
+     Mobile Responsive Optimization
+     ======================================== */
+
+  /* Prevent text overflow */
+  .text-ellipsis-1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .text-ellipsis-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .text-ellipsis-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Prevent content overflow */
+  .overflow-wrap-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Flexible container that prevents overflow */
+  .flex-shrink-safe {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* Mobile-first responsive font sizes */
+  .text-responsive-xs {
+    font-size: clamp(0.625rem, 2.5vw, 0.75rem);
+  }
+
+  .text-responsive-sm {
+    font-size: clamp(0.75rem, 3vw, 0.875rem);
+  }
+
+  .text-responsive-base {
+    font-size: clamp(0.875rem, 3.5vw, 1rem);
+  }
+
+  .text-responsive-lg {
+    font-size: clamp(1rem, 4vw, 1.125rem);
+  }
+
+  .text-responsive-xl {
+    font-size: clamp(1.125rem, 4.5vw, 1.25rem);
+  }
+
+  /* Responsive spacing */
+  .p-responsive {
+    padding: clamp(0.5rem, 3vw, 1rem);
+  }
+
+  .px-responsive {
+    padding-left: clamp(0.5rem, 3vw, 1rem);
+    padding-right: clamp(0.5rem, 3vw, 1rem);
+  }
+
+  .py-responsive {
+    padding-top: clamp(0.5rem, 2vw, 0.75rem);
+    padding-bottom: clamp(0.5rem, 2vw, 0.75rem);
+  }
+
+  .gap-responsive {
+    gap: clamp(0.5rem, 2vw, 1rem);
+  }
+
+  /* Mobile viewport height fix (uses JS-set --vh variable) */
+  .h-screen-safe {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+  }
+
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
+  }
+
+  .max-h-screen-safe {
+    max-height: 100vh;
+    max-height: calc(var(--vh, 1vh) * 100);
+  }
+}
+
+/* ========================================
+   Mobile Breakpoint Specific Styles
+   ======================================== */
+
+/* Extra small devices (phones, 320px and up) */
+@media screen and (max-width: 359px) {
+  /* Very small screens - reduce padding and font sizes */
+  .container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  /* Reduce button sizes on very small screens */
+  button, .btn {
+    min-height: 36px;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  /* Reduce card padding */
+  .card, [class*="Card"] {
+    padding: 0.75rem;
+  }
+
+  /* Reduce avatar sizes */
+  .avatar-sm {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .avatar-md {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  /* Reduce header height */
+  header, .header {
+    height: 48px !important;
+    min-height: 48px !important;
+  }
+
+  /* Reduce bottom nav height */
+  nav[class*="border-t"] {
+    height: 56px !important;
+  }
+
+  nav[class*="border-t"] button {
+    gap: 0.125rem;
+  }
+
+  nav[class*="border-t"] span {
+    font-size: 0.625rem !important;
+  }
+
+  nav[class*="border-t"] svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+
+/* Small devices (phones, 360px - 413px) */
+@media screen and (min-width: 360px) and (max-width: 413px) {
+  .container {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  /* Slightly reduce nav icon text */
+  nav[class*="border-t"] span {
+    font-size: 0.6875rem !important;
+  }
+}
+
+/* Medium phones (414px - 479px) - iPhone Plus, etc */
+@media screen and (min-width: 414px) and (max-width: 479px) {
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+/* Large phones (480px and up) */
+@media screen and (min-width: 480px) and (max-width: 767px) {
+  .container {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+}
+
+/* ========================================
+   Dialog/Modal Mobile Optimization
+   ======================================== */
+
+/* Ensure dialogs don't overflow on mobile */
+@media screen and (max-width: 767px) {
+  /* Dialog content optimization */
+  [role="dialog"],
+  [data-radix-dialog-content],
+  [data-radix-alert-dialog-content] {
+    max-width: calc(100vw - 2rem) !important;
+    max-height: calc(var(--vh, 1vh) * 90) !important;
+    margin: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  /* Dialog inner content scrollable */
+  [role="dialog"] > div,
+  [data-radix-dialog-content] > div {
+    max-height: calc(var(--vh, 1vh) * 80);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Sheet/Drawer optimization */
+  [data-radix-dialog-content][data-state="open"][class*="bottom"] {
+    max-height: calc(var(--vh, 1vh) * 85) !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+
+  /* Popover optimization */
+  [data-radix-popper-content-wrapper] {
+    max-width: calc(100vw - 1rem) !important;
+  }
+
+  /* Select dropdown optimization */
+  [data-radix-select-content] {
+    max-height: calc(var(--vh, 1vh) * 50) !important;
+  }
+
+  /* Toast/notification positioning */
+  [data-sonner-toaster] {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 4.5rem) !important;
+    left: 1rem !important;
+    right: 1rem !important;
+  }
+
+  /* Form elements optimization */
+  input, textarea, select {
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+    min-height: 44px; /* Touch-friendly minimum height */
+  }
+
+  /* Button touch targets */
+  button, [role="button"], a[href] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Reduce icon button sizes for better fit */
+  button[class*="size-icon"],
+  [class*="icon-button"] {
+    min-width: 36px;
+    min-height: 36px;
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ========================================
+   Landscape Mode Optimization
+   ======================================== */
+
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  /* Reduce header and nav in landscape */
+  header, .header {
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+
+  nav[class*="border-t"] {
+    height: 48px !important;
+  }
+
+  /* Reduce dialog height in landscape */
+  [role="dialog"],
+  [data-radix-dialog-content] {
+    max-height: 90vh !important;
+  }
+
+  /* Hide non-essential elements in landscape */
+  .hide-landscape {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   iOS Specific Fixes
+   ======================================== */
+
+@supports (-webkit-touch-callout: none) {
+  /* iOS safe area for fixed bottom elements */
+  .fixed-bottom-ios {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* iOS keyboard push fix */
+  .ios-keyboard-fix {
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+  }
+
+  /* iOS momentum scrolling */
+  .ios-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+
+  /* iOS input zoom prevention */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* ========================================
+   Android Specific Fixes
+   ======================================== */
+
+/* Android Chrome address bar compensation */
+@supports not (-webkit-touch-callout: none) {
+  .android-vh-fix {
+    height: 100%;
+    height: -webkit-fill-available;
+  }
+}
+
+/* ========================================
+   Android WebView / Capacitor App Fixes
+   ======================================== */
+
+/* Use dynamic viewport height for Android */
+@supports (height: 100dvh) {
+  html, body, #root {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+}
+
+/* Fallback for older Android WebViews */
+@supports not (height: 100dvh) {
+  html, body, #root {
+    height: calc(var(--vh, 1vh) * 100) !important;
+    max-height: calc(var(--vh, 1vh) * 100) !important;
+  }
+}
+
+/* Ensure main content area fills available space */
+.mobile-page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.mobile-page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Fix for pages with headers */
+.page-with-header {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-with-header > header,
+.page-with-header > .header {
+  flex-shrink: 0;
+}
+
+.page-with-header > main,
+.page-with-header > .content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* Prevent content from being cut off at bottom */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+}
+
+/* Android keyboard handling */
+@media screen and (max-height: 500px) {
+  /* When keyboard is open, reduce padding */
+  .keyboard-aware {
+    padding-bottom: 8px !important;
+  }
+  
+  /* Hide non-essential elements when keyboard is open */
+  .hide-on-keyboard {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   Notch/Cutout Safe Areas
+   ======================================== */
+
+/* Top safe area for notch devices */
+.notch-safe-top {
+  padding-top: max(env(safe-area-inset-top, 0px), 20px);
+}
+
+/* Bottom safe area for home indicator */
+.notch-safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+}
+
+/* Full notch safe padding */
+.notch-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+/* ========================================
+   Component-Specific Mobile Fixes
+   ======================================== */
+
+/* Chat message bubble overflow prevention */
+.message-bubble {
+  max-width: calc(100vw - 5rem);
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Image container aspect ratio preservation */
+.img-container-responsive {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.img-container-responsive img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Grid responsive for cards */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: 0.75rem;
+}
+
+@media screen and (max-width: 359px) {
+  .grid-responsive {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr));
+    gap: 0.5rem;
+  }
+}
+
+/* Flex wrap for button groups */
+.btn-group-responsive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn-group-responsive > * {
+  flex: 1 1 auto;
+  min-width: fit-content;
+}
+
+/* Table responsive wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Avatar group overlap fix */
+.avatar-group {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.avatar-group > * {
+  margin-left: -0.5rem;
+  border: 2px solid hsl(var(--background));
+}
+
+.avatar-group > *:last-child {
+  margin-left: 0;
+}
+
+/* iOS Safari keyboard fix - use dynamic viewport height */
+.h-dvh {
+  height: 100dvh;
+}
+
+/* Fallback for browsers that don't support dvh */
+@supports not (height: 100dvh) {
+  .h-dvh {
+    height: 100vh;
+  }
+}
+
+/* Chat container - prevent page scroll, only message area scrolls */
+.chat-container {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure chat messages don't overflow horizontally */
+.chat-container * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@supports not (height: 100dvh) {
+  .chat-container {
+    height: 100vh;
+  }
+}
+
+/* Responsive styles for very small screens (< 360px) */
+@media (max-width: 360px) {
+  /* Reduce button sizes on very small screens */
+  .call-controls button,
+  .chat-input-controls button {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+  
+  /* Reduce gaps on very small screens */
+  .call-controls,
+  .chat-input-controls {
+    gap: 4px !important;
+  }
+  
+  /* Reduce padding on very small screens */
+  .px-3 {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  .px-4 {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* Ensure flex containers don't overflow */
+.flex-nowrap-safe {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Force all containers to respect viewport width */
+.w-full {
+  max-width: 100% !important;
+}
+
+/* Ensure buttons in control bars are properly sized */
+.control-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  padding: 8px;
+}

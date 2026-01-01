@@ -1,0 +1,712 @@
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface CallState {
+  isInCall: boolean;
+  callType: 'audio' | 'video' | null;
+  isInitiator: boolean;
+  conversationId: string | null;
+  otherUser: {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+  } | null;
+  invitationId: string | null;
+}
+
+interface IncomingCall {
+  invitationId: string;
+  conversationId: string;
+  callType: 'audio' | 'video';
+  caller: {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+  };
+}
+
+interface CallContextType {
+  callState: CallState;
+  incomingCall: IncomingCall | null;
+  initiateCall: (
+    conversationId: string,
+    callType: 'audio' | 'video',
+    otherUser: { id: string; display_name: string; avatar_url: string | null }
+  ) => Promise<void>;
+  acceptCall: () => Promise<void>;
+  rejectCall: () => Promise<void>;
+  endCall: () => void;
+  cancelCall: () => Promise<void>;
+}
+
+const CallContext = createContext<CallContextType | undefined>(undefined);
+
+// Performance optimization config
+const CALL_CONFIG = {
+  // Fallback polling interval (ms) - only used when Realtime is unreliable
+  FALLBACK_POLL_INTERVAL: 30000, // 30 seconds
+  // Realtime event timeout - enable polling if no events for this long
+  REALTIME_STALE_TIMEOUT: 60000, // 60 seconds
+  // Check page visibility
+  CHECK_VISIBILITY: true,
+};
+
+export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { toast } = useToast();
+  const [callState, setCallState] = useState<CallState>({
+    isInCall: false,
+    callType: null,
+    isInitiator: false,
+    conversationId: null,
+    otherUser: null,
+    invitationId: null
+  });
+  const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const realtimeChannelRef = useRef<any>(null);
+  
+  // Use refs to avoid stale closure issues
+  const callStateRef = useRef(callState);
+  const incomingCallRef = useRef(incomingCall);
+  const rejectionHandledRef = useRef<string | null>(null);
+  
+  // Track Realtime subscription status and last event time
+  const realtimeStatusRef = useRef<'SUBSCRIBED' | 'CLOSED' | 'ERROR' | 'PENDING'>('PENDING');
+  const lastRealtimeEventRef = useRef<number>(Date.now());
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    callStateRef.current = callState;
+  }, [callState]);
+  
+  useEffect(() => {
+    incomingCallRef.current = incomingCall;
+  }, [incomingCall]);
+
+  useEffect(() => {
+    getCurrentUser();
+  }, []);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    console.log('[CallContext] Setting up realtime subscription for call invitations, user:', currentUserId);
+
+    // Track processed invitation IDs to prevent duplicates
+    const processedInvitations = new Set<string>();
+
+    // Check for any pending invitations (polling fallback)
+    const checkPendingInvitations = async () => {
+      // Performance: skip polling when page is in background
+      if (CALL_CONFIG.CHECK_VISIBILITY && document.visibilityState !== 'visible') {
+        return;
+      }
+      
+      // Performance: skip polling if Realtime is working and recent events exist
+      const now = Date.now();
+      const timeSinceLastEvent = now - lastRealtimeEventRef.current;
+      if (realtimeStatusRef.current === 'SUBSCRIBED' && timeSinceLastEvent < CALL_CONFIG.REALTIME_STALE_TIMEOUT) {
+        // Realtime is working, skip polling silently
+        return;
+      }
+      
+      try {
+        const { data: pendingInvitations, error } = await supabase
+          .from('call_invitations')
+          .select('*, caller:profiles!call_invitations_caller_id_fkey(id, display_name, avatar_url)')
+          .eq('callee_id', currentUserId)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.error('[CallContext] Error checking pending invitations:', error);
+          return;
+        }
+
+        // Only log when there are pending invitations
+        if (pendingInvitations && pendingInvitations.length > 0) {
+          console.log('[CallContext] Found pending invitations:', pendingInvitations.length);
+        }
+
+        if (pendingInvitations && pendingInvitations.length > 0 && !callStateRef.current.isInCall && !incomingCallRef.current) {
+          const invitation = pendingInvitations[0];
+          
+          // Skip if already processed
+          if (processedInvitations.has(invitation.id)) {
+            return;
+          }
+          
+          const caller = invitation.caller as any;
+          console.log('[CallContext] Found pending invitation:', invitation.id, 'type:', invitation.call_type, 'from:', caller?.display_name);
+          
+          if (caller) {
+            processedInvitations.add(invitation.id);
+            setIncomingCall({
+              invitationId: invitation.id,
+              conversationId: invitation.conversation_id,
+              callType: invitation.call_type as 'audio' | 'video',
+              caller: {
+                id: caller.id,
+                display_name: caller.display_name,
+                avatar_url: caller.avatar_url
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[CallContext] Exception in checkPendingInvitations:', err);
+      }
+    };
+
+    // Check if outgoing call was rejected (fallback for missed realtime events)
+    const checkCallRejection = async () => {
+      const currentState = callStateRef.current;
+      if (!currentState.isInCall || !currentState.invitationId || !currentState.isInitiator) {
+        return;
+      }
+
+      // Performance: skip when page is in background
+      if (CALL_CONFIG.CHECK_VISIBILITY && document.visibilityState !== 'visible') {
+        return;
+      }
+
+      try {
+        const { data: invitation, error } = await supabase
+          .from('call_invitations')
+          .select('status')
+          .eq('id', currentState.invitationId)
+          .single();
+
+        if (error) {
+          console.error('[CallContext] Error checking rejection:', error);
+          return;
+        }
+
+        if (invitation?.status === 'rejected') {
+          // Prevent duplicate handling
+          if (rejectionHandledRef.current === currentState.invitationId) return;
+          rejectionHandledRef.current = currentState.invitationId;
+          
+          console.log('[CallContext] Detected rejection via polling');
+          
+          // Save rejected call record
+          const callTypeText = currentState.callType === 'video' ? '视频通话' : '语音通话';
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user && currentState.conversationId) {
+            await supabase.from('messages').insert({
+              conversation_id: currentState.conversationId,
+              sender_id: user.id,
+              content: `[${callTypeText}] 对方已拒绝`,
+              type: 'text'
+            });
+          }
+          
+          setCallState({
+            isInCall: false,
+            callType: null,
+            isInitiator: false,
+            conversationId: null,
+            otherUser: null,
+            invitationId: null
+          });
+          
+          toast({
+            title: '通话被拒绝',
+            description: '对方拒绝了您的通话请求',
+          });
+        } else if (invitation?.status === 'cancelled' || invitation?.status === 'expired') {
+          console.log('[CallContext] Call status changed to:', invitation?.status);
+        }
+      } catch (err) {
+        console.error('[CallContext] Exception in checkCallRejection:', err);
+      }
+    };
+
+    // Initial check once
+    checkPendingInvitations();
+    
+    // Performance: use 30s fallback polling interval (instead of 1.5s)
+    const pendingCheckInterval = setInterval(() => {
+      // Only check for pending invitations when not in call and no incoming call
+      if (!callStateRef.current.isInCall && !incomingCallRef.current) {
+        checkPendingInvitations();
+      }
+      // Check for rejection when in outgoing call
+      if (callStateRef.current.isInCall && callStateRef.current.isInitiator) {
+        checkCallRejection();
+      }
+    }, CALL_CONFIG.FALLBACK_POLL_INTERVAL);
+
+    // Use explicit filter on callee_id for better reliability
+    const channel = supabase
+      .channel(`call-invitations-${currentUserId}-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'call_invitations',
+          filter: `callee_id=eq.${currentUserId}`
+        },
+        async (payload) => {
+          // Update last Realtime event time
+          lastRealtimeEventRef.current = Date.now();
+          
+          console.log('[CallContext] *** CALL INVITATION INSERT EVENT (filtered) ***:', payload);
+          const invitation = payload.new as any;
+          
+          // Skip if already processed
+          if (processedInvitations.has(invitation.id)) {
+            console.log('[CallContext] Already processed invitation:', invitation.id);
+            return;
+          }
+          
+          const currentCallState = callStateRef.current;
+          const currentIncoming = incomingCallRef.current;
+          
+          console.log('[CallContext] Incoming call for this user - type:', invitation.call_type, 'from:', invitation.caller_id);
+          console.log('[CallContext] Current state - isInCall:', currentCallState.isInCall, 'hasIncoming:', !!currentIncoming);
+          
+          // Check if not already in a call
+          if (invitation.status === 'pending' && !currentCallState.isInCall && !currentIncoming) {
+            // Fetch caller profile
+            const { data: callerProfile } = await supabase
+              .from('profiles')
+              .select('id, display_name, avatar_url')
+              .eq('id', invitation.caller_id)
+              .single();
+
+            console.log('[CallContext] Caller profile fetched:', callerProfile);
+
+            if (callerProfile) {
+              processedInvitations.add(invitation.id);
+              console.log('[CallContext] Setting incoming call state for', invitation.call_type, 'call from', callerProfile.display_name);
+              setIncomingCall({
+                invitationId: invitation.id,
+                conversationId: invitation.conversation_id,
+                callType: invitation.call_type,
+                caller: {
+                  id: callerProfile.id,
+                  display_name: callerProfile.display_name,
+                  avatar_url: callerProfile.avatar_url
+                }
+              });
+            }
+          } else {
+            console.log('[CallContext] Call not shown - status:', invitation.status, 'isInCall:', currentCallState.isInCall, 'hasIncoming:', !!currentIncoming);
+          }
+        }
+      )
+      // Separate UPDATE subscription for caller (when callee responds)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'call_invitations',
+          filter: `caller_id=eq.${currentUserId}`
+        },
+        async (payload) => {
+          // Update last Realtime event time
+          lastRealtimeEventRef.current = Date.now();
+          
+          const invitation = payload.new as any;
+          console.log('[CallContext] *** UPDATE as caller ***:', invitation.status);
+          
+          // For caller: callee rejected
+          if (invitation.status === 'rejected') {
+            // Prevent duplicate handling
+            if (rejectionHandledRef.current === invitation.id) return;
+            rejectionHandledRef.current = invitation.id;
+            
+            console.log('[CallContext] Call rejected by callee (realtime)');
+            
+            // Save rejected call record to messages
+            const currentState = callStateRef.current;
+            if (currentState.conversationId && currentState.callType) {
+              const callTypeText = currentState.callType === 'video' ? '视频通话' : '语音通话';
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                await supabase.from('messages').insert({
+                  conversation_id: currentState.conversationId,
+                  sender_id: user.id,
+                  content: `[${callTypeText}] 对方已拒绝`,
+                  type: 'text'
+                });
+                console.log('[CallContext] Rejected call record saved');
+              }
+            }
+            
+            setCallState({
+              isInCall: false,
+              callType: null,
+              isInitiator: false,
+              conversationId: null,
+              otherUser: null,
+              invitationId: null
+            });
+            toast({
+              title: '通话被拒绝',
+              description: '对方拒绝了您的通话请求',
+            });
+          }
+          
+          // For caller: callee accepted - just log, don't reset state
+          if (invitation.status === 'accepted') {
+            console.log('[CallContext] Call accepted by callee - WebRTC will handle connection');
+          }
+        }
+      )
+      // Separate UPDATE subscription for callee (when caller updates)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'call_invitations',
+          filter: `callee_id=eq.${currentUserId}`
+        },
+        async (payload) => {
+          // Update last Realtime event time
+          lastRealtimeEventRef.current = Date.now();
+          
+          const invitation = payload.new as any;
+          console.log('[CallContext] *** UPDATE as callee ***:', invitation.status);
+          const currentCallState = callStateRef.current;
+          
+          // For callee: caller cancelled
+          if (invitation.status === 'cancelled') {
+            console.log('[CallContext] Call cancelled by caller');
+            setIncomingCall(null);
+            toast({
+              title: '通话已取消',
+              description: '对方已取消通话',
+            });
+          }
+          
+          // For callee: call ended by caller (expired status)
+          if (invitation.status === 'expired') {
+            console.log('[CallContext] Call ended by other party');
+            // Only clear incoming call if not in active call
+            if (!currentCallState.isInCall) {
+              setIncomingCall(null);
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[CallContext] Realtime subscription status:', status);
+        realtimeStatusRef.current = status as any;
+        
+        if (status === 'SUBSCRIBED') {
+          console.log('[CallContext] Successfully subscribed to call invitations for user:', currentUserId);
+          lastRealtimeEventRef.current = Date.now(); // Subscription success counts as an event
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[CallContext] Channel error - subscription failed');
+        }
+      });
+
+    realtimeChannelRef.current = channel;
+
+    return () => {
+      console.log('[CallContext] Cleaning up realtime subscription');
+      clearInterval(pendingCheckInterval);
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
+        realtimeChannelRef.current = null;
+      }
+    };
+  }, [currentUserId, toast]);
+
+  const getCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      console.log('[CallContext] Current user ID:', user.id);
+      setCurrentUserId(user.id);
+    }
+  };
+
+  const initiateCall = useCallback(async (
+    conversationId: string,
+    callType: 'audio' | 'video',
+    otherUser: { id: string; display_name: string; avatar_url: string | null }
+  ) => {
+    try {
+      console.log('[CallContext] Initiating call to:', otherUser.id, 'type:', callType);
+      
+      // Reset rejection flag for new call
+      rejectionHandledRef.current = null;
+
+      // Check if the callee is online before initiating call
+      const { data: calleeProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('status, last_seen')
+        .eq('id', otherUser.id)
+        .single();
+
+      if (profileError) {
+        console.error('[CallContext] Error checking callee status:', profileError);
+      } else {
+        console.log('[CallContext] Callee status:', calleeProfile?.status, 'last_seen:', calleeProfile?.last_seen);
+        
+        // Check if user is offline or last seen more than 2 minutes ago
+        const lastSeenTime = calleeProfile?.last_seen ? new Date(calleeProfile.last_seen).getTime() : 0;
+        const twoMinutesAgo = Date.now() - 2 * 60 * 1000;
+        
+        if (calleeProfile?.status === 'offline' || lastSeenTime < twoMinutesAgo) {
+          toast({
+            title: '对方可能不在线',
+            description: '对方当前可能不在线，通话可能无法接通',
+          });
+          // Continue with the call anyway, just warn the user
+        }
+      }
+      
+      const constraints = {
+        audio: true,
+        video: callType === 'video'
+      };
+
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast({
+          title: '无法发起通话',
+          description: '您的浏览器不支持音视频通话，请使用最新版浏览器',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        stream.getTracks().forEach(track => track.stop());
+        console.log('[CallContext] Media permissions granted');
+      } catch (mediaError: any) {
+        console.error('[CallContext] Media permission error:', mediaError);
+        
+        let errorMessage = '请检查您的麦克风和摄像头权限';
+        
+        if (mediaError.name === 'NotAllowedError' || mediaError.name === 'PermissionDeniedError') {
+          errorMessage = callType === 'video' 
+            ? '请在浏览器设置中允许访问摄像头和麦克风，然后重试'
+            : '请在浏览器设置中允许访问麦克风，然后重试';
+        } else if (mediaError.name === 'NotFoundError' || mediaError.name === 'DevicesNotFoundError') {
+          errorMessage = callType === 'video'
+            ? '未检测到摄像头或麦克风设备'
+            : '未检测到麦克风设备';
+        } else if (mediaError.name === 'NotReadableError' || mediaError.name === 'TrackStartError') {
+          errorMessage = '摄像头或麦克风正在被其他应用使用，请关闭后重试';
+        } else if (mediaError.name === 'OverconstrainedError') {
+          errorMessage = '设备不满足要求，请检查您的摄像头和麦克风';
+        } else if (mediaError.name === 'SecurityError') {
+          errorMessage = '安全限制：请确保通过 HTTPS 访问本网站';
+        }
+        
+        toast({
+          title: '无法发起通话',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create call invitation in database
+      const { data: invitation, error } = await supabase
+        .from('call_invitations')
+        .insert({
+          caller_id: user.id,
+          callee_id: otherUser.id,
+          conversation_id: conversationId,
+          call_type: callType,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[CallContext] Error creating call invitation:', error);
+        toast({
+          title: '创建通话邀请失败',
+          description: error.message,
+          variant: 'destructive',
+        });
+        throw error;
+      }
+
+      console.log('[CallContext] Call invitation created:', invitation.id);
+
+      setCallState({
+        isInCall: true,
+        callType,
+        isInitiator: true,
+        conversationId,
+        otherUser,
+        invitationId: invitation.id
+      });
+
+      toast({
+        title: '正在呼叫',
+        description: `正在呼叫 ${otherUser.display_name}...`,
+      });
+
+    } catch (error) {
+      console.error('[CallContext] Error initiating call:', error);
+      toast({
+        title: '无法发起通话',
+        description: error instanceof Error ? error.message : '请检查您的麦克风和摄像头权限',
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
+
+  const cancelCall = useCallback(async () => {
+    console.log('[CallContext] Cancelling outgoing call');
+    
+    const currentInvitationId = callStateRef.current.invitationId;
+    if (currentInvitationId) {
+      await supabase
+        .from('call_invitations')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('id', currentInvitationId);
+    }
+
+    setCallState({
+      isInCall: false,
+      callType: null,
+      isInitiator: false,
+      conversationId: null,
+      otherUser: null,
+      invitationId: null
+    });
+
+    toast({
+      title: '已取消呼叫',
+    });
+  }, [toast]);
+
+  const acceptCall = useCallback(async () => {
+    const currentIncomingCall = incomingCallRef.current;
+    if (!currentIncomingCall) return;
+    
+    console.log('[CallContext] Accepting call from:', currentIncomingCall.caller.id);
+
+    // Check for existing pending invitations to avoid duplicates
+    const { data: pendingInvitations } = await supabase
+      .from('call_invitations')
+      .select('*')
+      .eq('id', currentIncomingCall.invitationId)
+      .eq('status', 'pending')
+      .single();
+
+    if (!pendingInvitations) {
+      console.log('[CallContext] Invitation already processed or not found');
+      setIncomingCall(null);
+      return;
+    }
+
+    // Update database status - this will trigger realtime notification to caller
+    const { error } = await supabase
+      .from('call_invitations')
+      .update({ status: 'accepted', updated_at: new Date().toISOString() })
+      .eq('id', currentIncomingCall.invitationId);
+
+    if (error) {
+      console.error('[CallContext] Error updating invitation status:', error);
+      return;
+    }
+
+    console.log('[CallContext] Invitation status updated to accepted');
+
+    setCallState({
+      isInCall: true,
+      callType: currentIncomingCall.callType,
+      isInitiator: false,
+      conversationId: currentIncomingCall.conversationId,
+      otherUser: currentIncomingCall.caller,
+      invitationId: currentIncomingCall.invitationId
+    });
+
+    setIncomingCall(null);
+  }, []);
+
+  const rejectCall = useCallback(async () => {
+    const currentIncomingCall = incomingCallRef.current;
+    if (!currentIncomingCall) {
+      console.log('[CallContext] rejectCall: No incoming call to reject');
+      return;
+    }
+
+    console.log('[CallContext] Rejecting call:', currentIncomingCall.invitationId, 'from:', currentIncomingCall.caller.id);
+
+    const { data, error } = await supabase
+      .from('call_invitations')
+      .update({ status: 'rejected', updated_at: new Date().toISOString() })
+      .eq('id', currentIncomingCall.invitationId)
+      .select();
+
+    if (error) {
+      console.error('[CallContext] Error rejecting call:', error);
+    } else {
+      console.log('[CallContext] Call rejected successfully:', data);
+    }
+
+    setIncomingCall(null);
+
+    toast({
+      title: '已拒绝通话',
+    });
+  }, [toast]);
+
+  const endCall = useCallback(async () => {
+    console.log('[CallContext] Ending call');
+    
+    const currentInvitationId = callStateRef.current.invitationId;
+    if (currentInvitationId) {
+      await supabase
+        .from('call_invitations')
+        .update({ status: 'expired', updated_at: new Date().toISOString() })
+        .eq('id', currentInvitationId);
+    }
+    
+    setCallState({
+      isInCall: false,
+      callType: null,
+      isInitiator: false,
+      conversationId: null,
+      otherUser: null,
+      invitationId: null
+    });
+  }, []);
+
+  return (
+    <CallContext.Provider
+      value={{
+        callState,
+        incomingCall,
+        initiateCall,
+        acceptCall,
+        rejectCall,
+        endCall,
+        cancelCall
+      }}
+    >
+      {children}
+    </CallContext.Provider>
+  );
+};
+
+export const useCall = () => {
+  const context = useContext(CallContext);
+  if (context === undefined) {
+    throw new Error('useCall must be used within a CallProvider');
+  }
+  return context;
+};
