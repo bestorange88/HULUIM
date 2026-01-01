@@ -375,26 +375,31 @@ export default function Conversations() {
   );
 
   return (
-    <div className="h-full flex flex-col bg-background">
-      <div className="p-4 border-b border-border bg-card shadow-card space-y-3">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t("chat.searchMessages")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+    <div className="h-full flex flex-col bg-gradient-to-b from-purple-50/30 to-white">
+      {/* Header */}
+      <div className="px-5 pt-4 pb-3 bg-white/80 backdrop-blur-sm border-b border-purple-100">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-emerald-600 bg-clip-text text-transparent">消息</h1>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={() => setGroupDialogOpen(true)}
-            className="shrink-0"
+            className="w-9 h-9 rounded-full hover:bg-purple-50 active:bg-purple-100"
           >
-            <FolderOpen className="h-4 w-4" />
+            <FolderOpen className="w-5 h-5 text-purple-700" />
           </Button>
+        </div>
+        
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-purple-400" />
+          <Input
+            type="text"
+            placeholder={t("chat.searchMessages")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-10 pl-11 pr-4 bg-purple-50 rounded-full text-[15px] focus:outline-none focus:bg-purple-50 focus:ring-2 focus:ring-purple-200 transition-all placeholder:text-purple-400 border-0"
+          />
         </div>
       </div>
 
@@ -440,50 +445,52 @@ export default function Conversations() {
             >
               <button
                 onClick={() => navigate(`/chat/${conversation.id}`)}
-                className="w-full p-4 hover:bg-accent/10 transition-colors text-left"
+                className="w-full px-5 py-3.5 flex items-center gap-3 active:bg-purple-50/50 transition-all text-left"
               >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
+                {/* Avatar with online indicator */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-purple-100">
                     <AvatarWithFrame
                       avatarUrl={conversation.avatar_url}
                       displayName={conversation.name || "G"}
                       frameStyle={conversation.avatar_frame || "none"}
                       size="md"
                     />
-                    {conversation.unreadCount && conversation.unreadCount > 0 && (
-                      <div className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs font-semibold z-10">
-                        {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
-                      </div>
-                    )}
                   </div>
-                  <div className="flex-1 min-w-0 pr-8">
-                    <div className="flex items-center gap-2 mb-1">
+                  {conversation.unreadCount && conversation.unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[11px] rounded-full flex items-center justify-center shadow-sm z-10">
+                      {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex-1 min-w-0 pr-8">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
                       {conversation.isPinned && (
-                        <Pin className="h-3 w-3 text-primary" />
+                        <Pin className="h-3 w-3 text-purple-500" />
                       )}
-                      <p className="font-medium text-sm truncate">
+                      <h3 className="text-[15px] font-medium text-gray-900 truncate">
                         {conversation.name || "未命名对话"}
-                      </p>
+                      </h3>
                     </div>
-                    {conversation.note && (
-                      <p className="text-xs text-primary mb-1 truncate">
-                        备注: {conversation.note}
-                      </p>
+                    {conversation.lastMessageTime && (
+                      <span className="text-xs text-purple-400 flex-shrink-0 ml-2">
+                        {formatDistanceToNow(new Date(conversation.lastMessageTime), {
+                          addSuffix: false,
+                          locale: zhCN,
+                        })}
+                      </span>
                     )}
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs text-muted-foreground truncate flex-1">
-                        {conversation.lastMessage || (conversation.type === "group" ? "群组对话" : "私聊")}
-                      </p>
-                      {conversation.lastMessageTime && (
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatDistanceToNow(new Date(conversation.lastMessageTime), {
-                            addSuffix: true,
-                            locale: zhCN,
-                          })}
-                        </span>
-                      )}
-                    </div>
                   </div>
+                  {conversation.note && (
+                    <p className="text-xs text-purple-500 mb-1 truncate">
+                      备注: {conversation.note}
+                    </p>
+                  )}
+                  <p className="text-[13px] text-gray-500 truncate">
+                    {conversation.lastMessage || (conversation.type === "group" ? "群组对话" : "私聊")}
+                  </p>
                 </div>
               </button>
 

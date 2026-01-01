@@ -1,5 +1,5 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { MessageSquare, Users, UserCircle, BookUser, UserPlus, MessageSquarePlus, Compass } from "lucide-react";
+import { MessageCircle, Users, UserCircle, BookUser, UserPlus, MessageSquarePlus, Compass, Phone } from "lucide-react";
 import Header from "./Header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,10 +16,9 @@ export default function MobileLayout() {
   const { pendingCount: friendRequestCount } = useFriendRequests();
 
   const navItems = [
-    { path: "/discover", icon: Compass, label: "发现" },
-    { path: "/conversations", icon: MessageSquare, label: "对话" },
+    { path: "/conversations", icon: MessageCircle, label: "消息" },
     { path: "/contacts", icon: BookUser, label: "通讯录" },
-    { path: "/groups", icon: Users, label: "群组" },
+    { path: "/discover", icon: Compass, label: "朋友圈" },
     { path: "/profile", icon: UserCircle, label: "我的" },
   ];
 
@@ -111,43 +110,39 @@ export default function MobileLayout() {
       </main>
 
       {!shouldHideNav && (
-        <nav className="border-t border-border bg-card shadow-elevated safe-area-bottom flex-shrink-0">
-          <div className="flex items-center justify-around h-16 px-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              const showMessageBadge = item.path === "/conversations" && unreadCount > 0;
-              const showFriendBadge = item.path === "/contacts" && friendRequestCount > 0;
-              const badgeCount = item.path === "/conversations" ? unreadCount : friendRequestCount;
-              
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className={`relative flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-200 no-tap-highlight ${
-                    active
-                      ? "text-primary scale-105"
-                      : "text-muted-foreground hover:text-foreground active:scale-95"
-                  }`}
-                >
-                  <div className="relative">
-                    <Icon className={`h-6 w-6 transition-all ${active ? "fill-primary/20 stroke-[2.5]" : "stroke-2"}`} />
-                    {(showMessageBadge || showFriendBadge) && (
-                      <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 h-5 min-w-[20px] px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full"
-                      >
-                        {badgeCount > 99 ? '99+' : badgeCount}
-                      </Badge>
-                    )}
-                  </div>
-                  <span className={`text-[11px] font-medium transition-all ${active ? "font-semibold" : ""}`}>
-                    {item.label}
+        <nav className="w-full h-16 bg-white/90 backdrop-blur-lg border-t border-purple-100 flex items-center justify-around px-2 safe-area-bottom flex-shrink-0">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            const showMessageBadge = item.path === "/conversations" && unreadCount > 0;
+            const showFriendBadge = item.path === "/contacts" && friendRequestCount > 0;
+            const badgeCount = item.path === "/conversations" ? unreadCount : friendRequestCount;
+            
+            return (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className={`flex flex-col items-center justify-center gap-1 px-5 py-2 rounded-xl transition-all duration-200 relative ${
+                  active
+                    ? "text-purple-600"
+                    : "text-gray-400 hover:text-purple-500"
+                }`}
+              >
+                <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 2} />
+                <span className="text-[11px]">{item.label}</span>
+                {/* Active indicator */}
+                {active && (
+                  <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full"></div>
+                )}
+                {/* Unread badge */}
+                {(showMessageBadge || showFriendBadge) && (
+                  <span className="absolute top-1 right-2 min-w-5 h-5 px-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[11px] rounded-full flex items-center justify-center shadow-sm">
+                    {badgeCount > 99 ? '99+' : badgeCount}
                   </span>
-                </button>
-              );
-            })}
-          </div>
+                )}
+              </button>
+            );
+          })}
         </nav>
       )}
 
