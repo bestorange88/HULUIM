@@ -63,6 +63,16 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
   const ringbackCtxRef = useRef<AudioContext | null>(null);
   const ringbackTimerRef = useRef<number | null>(null);
   
+  // Use refs to store callbacks to avoid useEffect dependency changes
+  const onEndCallRef = useRef(onEndCall);
+  const onCancelCallRef = useRef(onCancelCall);
+  
+  // Update refs when props change
+  useEffect(() => {
+    onEndCallRef.current = onEndCall;
+    onCancelCallRef.current = onCancelCall;
+  }, [onEndCall, onCancelCall]);
+  
   const CALL_TIMEOUT_SECONDS = 30;
 
   useEffect(() => {
@@ -207,9 +217,9 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
       if (!isCleanedUpRef.current) {
         await cleanup();
       }
-      onEndCall(0, false);
+      onEndCallRef.current(0, false);
     }, CALL_TIMEOUT_SECONDS * 1000);
-  }, [onEndCall, toast, cleanup]);
+  }, [toast, cleanup]);
 
   const sendSignal = useCallback(async (signal: { type: string }): Promise<void> => {
     if (channelRef.current) {
@@ -260,7 +270,7 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
               description: '对方已挂断',
             });
             cleanup().then(() => {
-              onEndCall(finalDurationRef.current, wasConnectedRef.current);
+              onEndCallRef.current(finalDurationRef.current, wasConnectedRef.current);
             });
           }
         },
@@ -340,9 +350,9 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
               description: '对方已挂断',
             });
             await cleanup();
-            onEndCall(finalDurationRef.current, wasConnectedRef.current);
+            onEndCallRef.current(finalDurationRef.current, wasConnectedRef.current);
           }
-        } else if (payload?.type === 'callee-ready') {
+        }else if (payload?.type === 'callee-ready') {
           console.log('[CallInterface] Callee ready signal received');
           stopRingback();
           stopCallTimeout();
@@ -407,10 +417,10 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
       
       if (!isCleanedUpRef.current) {
         await cleanup();
-        onEndCall(0, false);
+        onEndCallRef.current(0, false);
       }
     }
-  }, [isInitiator, invitationId, callType, toast, cleanup, onEndCall, sendSignal, startRingback, stopRingback, startCallTimeout, stopCallTimeout, startCallTimer]);
+  }, [isInitiator, invitationId, callType, toast, cleanup, sendSignal, startRingback, stopRingback, startCallTimeout, stopCallTimeout, startCallTimer]);
 
   useEffect(() => {
     initializeCall();
@@ -498,7 +508,7 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
     }
     
     await cleanup();
-    onEndCall(finalDurationRef.current, wasConnectedRef.current);
+    onEndCallRef.current(finalDurationRef.current, wasConnectedRef.current);
   };
 
   const handleCancelCall = async () => {
@@ -530,10 +540,10 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
     }
     
     await cleanup();
-    if (onCancelCall) {
-      onCancelCall();
+    if (onCancelCallRef.current) {
+      onCancelCallRef.current();
     } else {
-      onEndCall(0, false);
+      onEndCallRef.current(0, false);
     }
   };
 
