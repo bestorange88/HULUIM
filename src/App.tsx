@@ -96,6 +96,86 @@ const setupAuthDebugListener = () => {
 // Initialize auth debug listener immediately
 setupAuthDebugListener();
 
+// User-facing app with call functionality
+const UserApp: React.FC = () => {
+  return (
+    <CallProvider>
+      <GlobalCallManager />
+      <PushNotificationManager />
+      <Routes>
+        <Route path="/" element={<Navigate to="/conversations" replace />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route element={<ResponsiveLayout />}>
+          <Route path="/discover" element={<Discover />} />
+          <Route path="/moment/:momentId" element={<MomentDetail />} />
+          <Route path="/conversations" element={<Conversations />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/groups" element={<Groups />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/chat/:conversationId" element={<ChatDetail />} />
+          <Route path="/personal-info" element={<PersonalInfo />} />
+          <Route path="/notification-settings" element={<NotificationSettings />} />
+          <Route path="/privacy-security" element={<PrivacySecurity />} />
+          <Route path="/general-settings" element={<GeneralSettings />} />
+          <Route path="/help-feedback" element={<HelpFeedback />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/delete-account" element={<DeleteAccount />} />
+          <Route path="/search-friends" element={<SearchFriends />} />
+          <Route path="/scan-qr" element={<ScanQRCode />} />
+        </Route>
+        <Route path="/join/:code" element={<JoinGroup />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </CallProvider>
+  );
+};
+
+// Admin app without call functionality
+const AdminApp: React.FC = () => {
+  return (
+    <AdminAuthProvider>
+      <Routes>
+        <Route path="login" element={<AdminLogin />} />
+        <Route element={<ProtectedAdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="performance" element={<AdminPerformanceMonitor />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="conversations" element={<AdminConversations />} />
+            <Route path="messages" element={<AdminMessages />} />
+            <Route path="transactions" element={<AdminTransactions />} />
+            <Route path="red-envelopes" element={<AdminRedEnvelopes />} />
+            <Route path="transfers" element={<AdminTransfers />} />
+            <Route path="crypto-review" element={<AdminCryptoReview />} />
+            <Route path="financial" element={<AdminFinancialManagement />} />
+            <Route path="financial-reports" element={<AdminFinancialReports />} />
+            <Route path="sensitive-words" element={<AdminSensitiveWords />} />
+            <Route path="articles" element={<AdminArticles />} />
+            <Route path="real-name-verifications" element={<AdminRealNameVerifications />} />
+            <Route path="point-products" element={<AdminPointProducts />} />
+            <Route path="membership-tiers" element={<AdminMembershipTiers />} />
+            <Route path="user-memberships" element={<AdminUserMemberships />} />
+            <Route path="point-orders" element={<AdminPointOrders />} />
+            <Route path="lucky-draw-records" element={<AdminLuckyDrawRecords />} />
+            <Route path="gifts" element={<AdminGifts />} />
+            <Route path="avatar-frames" element={<AdminAvatarFrames />} />
+            <Route path="checkin-settings" element={<AdminCheckInSettings />} />
+            <Route path="customer-service" element={<AdminCustomerService />} />
+            <Route path="system-messages" element={<AdminSystemMessages />} />
+            <Route path="news" element={<AdminNews />} />
+            <Route path="moments" element={<AdminMoments />} />
+            <Route path="platform-settings" element={<AdminPlatformSettings />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
+        </Route>
+      </Routes>
+    </AdminAuthProvider>
+  );
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -105,79 +185,12 @@ function App() {
         <OfflineIndicator />
         <PWAUpdatePrompt />
         <BrowserRouter>
-          <CallProvider>
-            <GlobalCallManager />
-            <PushNotificationManager />
-            <Routes>
-              <Route path="/" element={<Navigate to="/conversations" replace />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route element={<ResponsiveLayout />}>
-                <Route path="/discover" element={<Discover />} />
-                <Route path="/moment/:momentId" element={<MomentDetail />} />
-                <Route path="/conversations" element={<Conversations />} />
-                <Route path="/contacts" element={<Contacts />} />
-                <Route path="/groups" element={<Groups />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/chat/:conversationId" element={<ChatDetail />} />
-                <Route path="/personal-info" element={<PersonalInfo />} />
-                <Route path="/notification-settings" element={<NotificationSettings />} />
-                <Route path="/privacy-security" element={<PrivacySecurity />} />
-                <Route path="/general-settings" element={<GeneralSettings />} />
-                <Route path="/help-feedback" element={<HelpFeedback />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/terms-of-service" element={<TermsOfService />} />
-                <Route path="/about-us" element={<AboutUs />} />
-                <Route path="/delete-account" element={<DeleteAccount />} />
-                <Route path="/search-friends" element={<SearchFriends />} />
-                <Route path="/scan-qr" element={<ScanQRCode />} />
-              </Route>
-              <Route path="/join/:code" element={<JoinGroup />} />
-              
-              {/* Admin routes */}
-              <Route path="/superadmin/*" element={
-                <AdminAuthProvider>
-                  <Routes>
-                    <Route path="login" element={<AdminLogin />} />
-                    <Route element={<ProtectedAdminRoute />}>
-                      <Route element={<AdminLayout />}>
-                        <Route index element={<Navigate to="dashboard" replace />} />
-                        <Route path="dashboard" element={<AdminDashboard />} />
-                        <Route path="performance" element={<AdminPerformanceMonitor />} />
-                        <Route path="users" element={<AdminUsers />} />
-                        <Route path="conversations" element={<AdminConversations />} />
-                        <Route path="messages" element={<AdminMessages />} />
-                        <Route path="transactions" element={<AdminTransactions />} />
-                        <Route path="red-envelopes" element={<AdminRedEnvelopes />} />
-                        <Route path="transfers" element={<AdminTransfers />} />
-                        <Route path="crypto-review" element={<AdminCryptoReview />} />
-                        <Route path="financial" element={<AdminFinancialManagement />} />
-                        <Route path="financial-reports" element={<AdminFinancialReports />} />
-                        <Route path="sensitive-words" element={<AdminSensitiveWords />} />
-                        <Route path="articles" element={<AdminArticles />} />
-                        <Route path="real-name-verifications" element={<AdminRealNameVerifications />} />
-                        <Route path="point-products" element={<AdminPointProducts />} />
-                        <Route path="membership-tiers" element={<AdminMembershipTiers />} />
-                        <Route path="user-memberships" element={<AdminUserMemberships />} />
-                        <Route path="point-orders" element={<AdminPointOrders />} />
-                        <Route path="lucky-draw-records" element={<AdminLuckyDrawRecords />} />
-                        <Route path="gifts" element={<AdminGifts />} />
-                        <Route path="avatar-frames" element={<AdminAvatarFrames />} />
-                        <Route path="checkin-settings" element={<AdminCheckInSettings />} />
-                        <Route path="customer-service" element={<AdminCustomerService />} />
-                        <Route path="system-messages" element={<AdminSystemMessages />} />
-                        <Route path="news" element={<AdminNews />} />
-                        <Route path="moments" element={<AdminMoments />} />
-                        <Route path="platform-settings" element={<AdminPlatformSettings />} />
-                        <Route path="settings" element={<AdminSettings />} />
-                      </Route>
-                    </Route>
-                  </Routes>
-                </AdminAuthProvider>
-              } />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </CallProvider>
+          <Routes>
+            {/* Admin routes - completely separate from user app, no call functionality */}
+            <Route path="/superadmin/*" element={<AdminApp />} />
+            {/* User routes - with call functionality */}
+            <Route path="/*" element={<UserApp />} />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
