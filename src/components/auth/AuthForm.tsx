@@ -28,8 +28,12 @@ export default function AuthForm() {
     switch (field) {
       case 'username':
         if (!value) {
-          errors.username = "用户名不能为空";
+          errors.username = isLogin ? "账号不能为空" : "用户名不能为空";
           valid.username = false;
+        } else if (isLogin) {
+          // 登录模式：允许手机号或用户名，放宽验证
+          delete errors.username;
+          valid.username = value.length >= 3;
         } else if (value.length < 3) {
           errors.username = `用户名还需${3 - value.length}个字符`;
           valid.username = false;
@@ -117,21 +121,55 @@ export default function AuthForm() {
 
     try {
       if (isLogin) {
-        if (!username || username.length < 3) {
-          throw new Error("请输入有效的用户名");
+        const input = username.trim();
+        if (!input) {
+          throw new Error("请输入账号");
         }
         if (!password || password.length < 6) {
           throw new Error("密码至少需要6个字符");
         }
 
-        const email = `${username}@user.local`;
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        // 检查输入是否为手机号（11位数字，可能带+86前缀）
+        const cleanPhone = input.replace(/^\+?86/, '').replace(/\s/g, '');
+        const isPhoneNumber = /^\d{11}$/.test(cleanPhone);
+        
+        let loginSuccess = false;
+        let lastError: Error | null = null;
 
-        if (error) {
-          throw new Error("用户名或密码错误");
+        if (isPhoneNumber) {
+          // 手机号登录：使用 @phone.local 格式（旧用户）
+          const email = `${cleanPhone}@phone.local`;
+          const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (!error) {
+            loginSuccess = true;
+          } else {
+            lastError = new Error("手机号或密码错误");
+          }
+        } else {
+          // 用户名登录：先尝试 @user.local（新用户），再尝试 @cs.internal（客服账号）
+          const emailFormats = [`${input}@user.local`, `${input}@cs.internal`];
+          
+          for (const email of emailFormats) {
+            const { error } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+            if (!error) {
+              loginSuccess = true;
+              break;
+            }
+          }
+          
+          if (!loginSuccess) {
+            lastError = new Error("账号或密码错误");
+          }
+        }
+
+        if (!loginSuccess && lastError) {
+          throw lastError;
         }
 
         toast({
@@ -243,13 +281,13 @@ export default function AuthForm() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm text-slate-300 flex items-center gap-2">
-                用户名
+                {isLogin ? '账号' : '用户名'}
                 {fieldValid.username && <CheckCircle className="h-4 w-4 text-green-500" />}
               </Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="输入用户名（字母、数字、下划线）"
+                placeholder={isLogin ? "输入手机号或用户名" : "输入用户名（字母、数字、下划线）"}
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value);
