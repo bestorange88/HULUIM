@@ -144,18 +144,29 @@ export default async function handler(req: Request): Promise<Response> {
       });
     }
 
+    // Extract access token from Authorization header
+    // Format: "Bearer <access_token>"
+    const accessToken = authHeader.replace(/^Bearer\s+/i, "");
+    if (!accessToken || accessToken === authHeader) {
+      console.error("[generate-trtc-usersig] Invalid authorization header format");
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Invalid authorization header format"
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Verify the user's JWT token using Supabase
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
     
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: { Authorization: authHeader }
-      }
-    });
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Get the authenticated user by explicitly passing the access token
+    // This avoids the "Auth session missing" error in Edge Functions
+    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
     
     if (authError || !user) {
       console.error("[generate-trtc-usersig] Auth error:", authError);

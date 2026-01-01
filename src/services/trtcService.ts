@@ -252,9 +252,32 @@ class TRTCService {
       console.log('[TRTCService] Local stream published');
       
       return this.localStream;
-    } catch (err) {
-      console.error('[TRTCService] Publish error:', err);
-      this.callbacks.onError?.(err as Error);
+    } catch (err: any) {
+      // 详细记录错误信息以便诊断
+      console.error('[TRTCService] Publish error:', {
+        name: err?.name,
+        message: err?.message,
+        code: err?.code,
+        stack: err?.stack
+      });
+      
+      // 提供更友好的错误信息
+      let userMessage = err?.message || '发布本地流失败';
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        userMessage = '摄像头/麦克风权限被拒绝，请在浏览器设置中允许访问';
+      } else if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
+        userMessage = '未找到摄像头或麦克风设备';
+      } else if (err?.name === 'NotReadableError' || err?.name === 'TrackStartError') {
+        userMessage = '摄像头/麦克风被其他应用占用，请关闭其他使用摄像头的应用后重试';
+      } else if (err?.name === 'OverconstrainedError') {
+        userMessage = '摄像头不支持请求的分辨率';
+      } else if (err?.name === 'AbortError') {
+        userMessage = '设备访问被中断';
+      }
+      
+      const enhancedError = new Error(userMessage);
+      (enhancedError as any).originalError = err;
+      this.callbacks.onError?.(enhancedError);
       return null;
     }
   }

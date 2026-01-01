@@ -55,10 +55,10 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isCleanedUpRef = useRef(false);
   const initializingRef = useRef(false);
+  const initSeqRef = useRef(0); // For cancelling stale initialization
   const callTimerRef = useRef<number | null>(null);
   const connectedAtRef = useRef<number | null>(null);
   const wasConnectedRef = useRef(false);
@@ -167,12 +167,23 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
     }
     isCleanedUpRef.current = true;
     
+    // Invalidate any ongoing initialization
+    initSeqRef.current++;
+    
     console.log('[CallInterface] Cleaning up call resources...');
     stopRingback();
     stopCallTimer();
     stopCallTimeout();
     
-    await trtcService.leave();
+    // Add timeout protection for trtcService.leave()
+    const leavePromise = trtcService.leave();
+    const timeoutPromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        console.log('[CallInterface] TRTC leave timeout, continuing cleanup');
+        resolve();
+      }, 3000);
+    });
+    await Promise.race([leavePromise, timeoutPromise]);
     
     if (channelRef.current) {
       console.log('[CallInterface] Removing signaling channel');
@@ -230,8 +241,12 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
       return;
     }
     initializingRef.current = true;
+    
+    // Record current sequence for cancellation check
+    const currentSeq = ++initSeqRef.current;
+    const isCancelled = () => initSeqRef.current !== currentSeq || isCleanedUpRef.current;
 
-    console.log('[CallInterface] Initializing TRTC call...', { isInitiator, invitationId, callType });
+    console.log('[CallInterface] Initializing TRTC call...', { isInitiator, invitationId, callType, seq: currentSeq });
 
     try {
       const initialized = await trtcService.initialize(invitationId, callType, {
@@ -259,20 +274,19 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
           setCallStatus('connected');
           startCallTimer();
           
-          if (callType === 'video' && remoteVideoRef.current) {
-            setupAndroidVideo(remoteVideoRef.current);
-            stream.play(remoteVideoRef.current).then(() => {
+          // TRTC SDK play() requires container ID string or HTMLDivElement, not video/audio element
+          // Play to the container div, SDK will create its own video/audio elements inside
+          if (callType === 'video') {
+            stream.play('remote-video-container', { muted: false }).then(() => {
               console.log('[CallInterface] Remote video playing');
               setHasRemoteVideo(true);
               setRemoteVideoPlaying(true);
             }).catch((e: Error) => {
               console.error('[CallInterface] Remote video play error:', e);
             });
-          }
-          
-          if (remoteAudioRef.current) {
-            setupAndroidAudio(remoteAudioRef.current);
-            stream.play(remoteAudioRef.current).catch((e: Error) => {
+          } else {
+            // For audio-only calls, play to a container
+            stream.play('remote-audio-container', { muted: false }).catch((e: Error) => {
               console.log('[CallInterface] Remote audio play error (may be normal):', e);
             });
           }
@@ -304,6 +318,12 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
       if (!initialized) {
         throw new Error('Failed to initialize TRTC');
       }
+      
+      // Check if cancelled after initialization
+      if (isCancelled()) {
+        console.log('[CallInterface] Initialization cancelled after TRTC init');
+        return;
+      }
 
       const channel = supabase.channel(`call:${invitationId}`, {
         config: {
@@ -334,15 +354,33 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
       await channel.subscribe();
       channelRef.current = channel;
       console.log('[CallInterface] Signaling channel subscribed');
+      
+      // Check if cancelled after channel subscribe
+      if (isCancelled()) {
+        console.log('[CallInterface] Initialization cancelled after channel subscribe');
+        return;
+      }
 
       const joined = await trtcService.joinRoom();
       if (!joined) {
         throw new Error('Failed to join TRTC room');
       }
+      
+      // Check if cancelled after joining room
+      if (isCancelled()) {
+        console.log('[CallInterface] Initialization cancelled after join room');
+        return;
+      }
 
       const localStream = await trtcService.publishLocalStream(callType);
       if (!localStream) {
         throw new Error('Failed to publish local stream');
+      }
+      
+      // Check if cancelled after publishing stream
+      if (isCancelled()) {
+        console.log('[CallInterface] Initialization cancelled after publish stream');
+        return;
       }
 
       if (callType === 'video' && localVideoRef.current) {
@@ -360,7 +398,7 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
         setCallStatus('connecting');
       }
 
-      console.log('[CallInterface] TRTC call initialized successfully');
+      console.log('[CallInterface] TRTC call initialized successfully, seq:', currentSeq);
 
     } catch (error) {
       console.error('[CallInterface] Error initializing call:', error);
@@ -572,13 +610,11 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
           </div>
         )}
 
-        <audio
-          ref={remoteAudioRef}
-          autoPlay
-          playsInline
-          controls={false}
+        {/* Hidden container for remote audio stream - TRTC SDK will create audio element inside */}
+        <div 
+          id="remote-audio-container"
           className="hidden"
-          style={{ display: 'none' }}
+          style={{ display: 'none', position: 'absolute', width: 0, height: 0 }}
         />
 
         {callType === 'video' && (
