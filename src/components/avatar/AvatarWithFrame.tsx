@@ -14,8 +14,15 @@ interface AvatarWithFrameProps {
 const sizeClasses = {
   sm: "h-10 w-10",
   md: "h-12 w-12",
-  lg: "h-16 w-16",
+  lg: "h-14 w-14",
   xl: "h-24 w-24"
+};
+
+const textSizeClasses = {
+  sm: "text-xs",
+  md: "text-sm",
+  lg: "text-base",
+  xl: "text-xl"
 };
 
 const frameClasses: Record<string, string> = {
@@ -90,8 +97,11 @@ export function AvatarWithFrame({
   return (
     <div className={cn("relative inline-block", className)}>
       <Avatar className={cn(sizeClasses[size], frameClass, "transition-all duration-300")}>
-        <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-semibold">
+        <AvatarImage src={avatarUrl || undefined} alt={displayName} className="object-cover" />
+        <AvatarFallback className={cn(
+          "bg-gradient-to-br from-primary to-accent text-primary-foreground font-semibold",
+          textSizeClasses[size]
+        )}>
           {displayName?.slice(0, 2).toUpperCase() || "??"}
         </AvatarFallback>
       </Avatar>

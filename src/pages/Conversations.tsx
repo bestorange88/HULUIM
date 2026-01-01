@@ -449,14 +449,13 @@ export default function Conversations() {
               >
                 {/* Avatar with online indicator */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-purple-100">
-                    <AvatarWithFrame
-                      avatarUrl={conversation.avatar_url}
-                      displayName={conversation.name || "G"}
-                      frameStyle={conversation.avatar_frame || "none"}
-                      size="md"
-                    />
-                  </div>
+                  <AvatarWithFrame
+                    avatarUrl={conversation.avatar_url}
+                    displayName={conversation.name || "G"}
+                    frameStyle={conversation.avatar_frame || "none"}
+                    size="lg"
+                    className="ring-2 ring-purple-100 rounded-full"
+                  />
                   {(conversation.unreadCount ?? 0) > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[11px] rounded-full flex items-center justify-center shadow-sm z-10">
                       {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
