@@ -31,6 +31,38 @@ import GlobalCallManager from "./components/call/GlobalCallManager";
 import PushNotificationManager from "./components/push/PushNotificationManager";
 import { CallProvider } from "./contexts/CallContext";
 import JoinGroup from "./pages/JoinGroup";
+import { AdminAuthProvider } from "./contexts/AdminAuthContext";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminLogin from "./pages/admin/Login";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminPerformanceMonitor from "./pages/admin/PerformanceMonitor";
+import AdminUsers from "./pages/admin/Users";
+import AdminConversations from "./pages/admin/Conversations";
+import AdminMessages from "./pages/admin/Messages";
+import AdminTransactions from "./pages/admin/Transactions";
+import AdminRedEnvelopes from "./pages/admin/RedEnvelopes";
+import AdminTransfers from "./pages/admin/Transfers";
+import AdminCryptoReview from "./pages/admin/CryptoReview";
+import AdminFinancialManagement from "./pages/admin/FinancialManagement";
+import AdminFinancialReports from "./pages/admin/FinancialReports";
+import AdminSensitiveWords from "./pages/admin/SensitiveWords";
+import AdminPlatformSettings from "./pages/admin/PlatformSettings";
+import AdminSettings from "./pages/admin/Settings";
+import AdminArticles from "./pages/admin/Articles";
+import AdminRealNameVerifications from "./pages/admin/RealNameVerifications";
+import AdminPointProducts from "./pages/admin/PointProducts";
+import AdminMembershipTiers from "./pages/admin/MembershipTiers";
+import AdminPointOrders from "./pages/admin/PointOrders";
+import AdminNews from "./pages/admin/News";
+import AdminMoments from "./pages/admin/Moments";
+import AdminSystemMessages from "./pages/admin/SystemMessages";
+import AdminAvatarFrames from "./pages/admin/AvatarFrames";
+import AdminLuckyDrawRecords from "./pages/admin/LuckyDrawRecords";
+import AdminGifts from "./pages/admin/AdminGifts";
+import AdminUserMemberships from "./pages/admin/UserMemberships";
+import AdminCheckInSettings from "./pages/admin/CheckInSettings";
+import AdminCustomerService from "./pages/admin/CustomerService";
+import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +132,49 @@ function App() {
                 <Route path="/scan-qr" element={<ScanQRCode />} />
               </Route>
               <Route path="/join/:code" element={<JoinGroup />} />
+              
+              {/* Admin routes */}
+              <Route path="/superadmin/*" element={
+                <AdminAuthProvider>
+                  <Routes>
+                    <Route path="login" element={<AdminLogin />} />
+                    <Route element={<ProtectedAdminRoute />}>
+                      <Route element={<AdminLayout />}>
+                        <Route index element={<Navigate to="dashboard" replace />} />
+                        <Route path="dashboard" element={<AdminDashboard />} />
+                        <Route path="performance" element={<AdminPerformanceMonitor />} />
+                        <Route path="users" element={<AdminUsers />} />
+                        <Route path="conversations" element={<AdminConversations />} />
+                        <Route path="messages" element={<AdminMessages />} />
+                        <Route path="transactions" element={<AdminTransactions />} />
+                        <Route path="red-envelopes" element={<AdminRedEnvelopes />} />
+                        <Route path="transfers" element={<AdminTransfers />} />
+                        <Route path="crypto-review" element={<AdminCryptoReview />} />
+                        <Route path="financial" element={<AdminFinancialManagement />} />
+                        <Route path="financial-reports" element={<AdminFinancialReports />} />
+                        <Route path="sensitive-words" element={<AdminSensitiveWords />} />
+                        <Route path="articles" element={<AdminArticles />} />
+                        <Route path="real-name-verifications" element={<AdminRealNameVerifications />} />
+                        <Route path="point-products" element={<AdminPointProducts />} />
+                        <Route path="membership-tiers" element={<AdminMembershipTiers />} />
+                        <Route path="user-memberships" element={<AdminUserMemberships />} />
+                        <Route path="point-orders" element={<AdminPointOrders />} />
+                        <Route path="lucky-draw-records" element={<AdminLuckyDrawRecords />} />
+                        <Route path="gifts" element={<AdminGifts />} />
+                        <Route path="avatar-frames" element={<AdminAvatarFrames />} />
+                        <Route path="checkin-settings" element={<AdminCheckInSettings />} />
+                        <Route path="customer-service" element={<AdminCustomerService />} />
+                        <Route path="system-messages" element={<AdminSystemMessages />} />
+                        <Route path="news" element={<AdminNews />} />
+                        <Route path="moments" element={<AdminMoments />} />
+                        <Route path="platform-settings" element={<AdminPlatformSettings />} />
+                        <Route path="settings" element={<AdminSettings />} />
+                      </Route>
+                    </Route>
+                  </Routes>
+                </AdminAuthProvider>
+              } />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </CallProvider>

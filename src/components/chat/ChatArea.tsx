@@ -95,7 +95,8 @@ interface ChatAreaProps {
 export default function ChatArea({ conversationId }: ChatAreaProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [canSend, setCanSend] = useState(false);
+  // canSend is now derived from newMessage to fix emoji/Chinese input issues
+  const canSend = newMessage.trim().length > 0;
   const [lastSendTime, setLastSendTime] = useState<number>(0);
   const [sendCount, setSendCount] = useState<number>(0);
   const [sendCountResetTime, setSendCountResetTime] = useState<number>(0);
@@ -766,6 +767,34 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
     scrollToBottom();
   }, [messages]);
 
+  // Handle mobile virtual keyboard - ensure input is visible when keyboard opens
+  useEffect(() => {
+    const handleViewportResize = () => {
+      // When virtual keyboard opens, scroll input into view
+      if (document.activeElement === textareaRef.current) {
+        setTimeout(() => {
+          textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 100);
+      }
+    };
+
+    // Use visualViewport API if available (more reliable for mobile keyboards)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+      window.visualViewport.addEventListener('scroll', handleViewportResize);
+      return () => {
+        window.visualViewport?.removeEventListener('resize', handleViewportResize);
+        window.visualViewport?.removeEventListener('scroll', handleViewportResize);
+      };
+    }
+    
+    // Fallback for browsers without visualViewport
+    window.addEventListener('resize', handleViewportResize);
+    return () => {
+      window.removeEventListener('resize', handleViewportResize);
+    };
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -1127,7 +1156,6 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
       }
     } else {
       setNewMessage("");
-    setCanSend(false);
       setLastSendTime(Date.now());
       setSendCount(prev => prev + 1);
       setQuotedMessage(null); // Clear quoted message after sending
@@ -2728,12 +2756,14 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
                 placeholder={t("chat.typeMessage")}
                 value={newMessage}
                 onChange={handleInputChange}
-                onInput={(e) => setCanSend((e.target as HTMLTextAreaElement).value.trim().length > 0)}
                 onKeyDown={(e) => {
                   // Submit on Enter (without Shift) - but not during IME composition
-                  if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+                  // Use nativeEvent.isComposing for more reliable IME detection
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && !isComposing) {
                     e.preventDefault();
-                    if (newMessage.trim()) {
+                    // Use DOM value directly for more reliable check
+                    const currentValue = (e.target as HTMLTextAreaElement).value.trim();
+                    if (currentValue) {
                       (e.target as HTMLTextAreaElement).form?.requestSubmit();
                     }
                   }
@@ -2743,7 +2773,6 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
                   setIsComposing(false);
                   const value = e.currentTarget.value;
                   setNewMessage(value);
-                  setCanSend(value.trim().length > 0);
                 }}
                 rows={1}
                 className="flex-1 min-h-[36px] max-h-[120px] py-2 text-sm min-w-0 resize-none overflow-y-auto"
