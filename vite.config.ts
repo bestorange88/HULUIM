@@ -11,6 +11,29 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  build: {
+    // Remove console.log in production
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: mode === 'production',
+        drop_debugger: mode === 'production',
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core vendor chunks
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover', '@radix-ui/react-toast', '@radix-ui/react-tooltip'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          // Heavy dependencies - lazy loaded
+          'vendor-trtc': ['trtc-js-sdk'],
+          'vendor-qrcode': ['qrcode', '@zxing/browser', '@zxing/library'],
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),

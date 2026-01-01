@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { QrCode, Copy, ChevronRight, Settings, LogOut, User, Bell, Lock, HelpCircle, FileText, Info, Camera, Sparkles, Loader2, Download, RefreshCw } from "lucide-react";
+import { QrCode, Copy, ChevronRight, Settings, LogOut, User, Bell, Lock, HelpCircle, FileText, Info, Camera, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvatarWithFrame } from "@/components/avatar/AvatarWithFrame";
@@ -18,7 +18,6 @@ export default function Profile() {
   const [frameDialogOpen, setFrameDialogOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [uploading, setUploading] = useState(false);
-  const [checkingUpdate, setCheckingUpdate] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -68,25 +67,7 @@ export default function Profile() {
     toast({ title: t("auth.logout"), description: t("common.success") });
   };
 
-  const handleCheckUpdate = async () => {
-    setCheckingUpdate(true);
-    try {
-      const currentVersion = "1.0.30";
-      const response = await fetch("/version.json?t=" + Date.now());
-      if (!response.ok) throw new Error("无法获取版本信息");
-      const data = await response.json();
-      if (data.version && data.version !== currentVersion) {
-        toast({ title: "发现新版本", description: "新版本 " + data.version + " 可用" });
-        if (data.downloadUrl) window.open(data.downloadUrl, "_blank");
-      } else {
-        toast({ title: "已是最新版本", description: "当前版本 " + currentVersion + " 已是最新" });
-      }
-    } catch (error) {
-      toast({ title: "检查更新失败", description: "请检查网络连接后重试", variant: "destructive" });
-    } finally { setCheckingUpdate(false); }
-  };
-
-  const handleAvatarClick = () => fileInputRef.current?.click();
+  const handleAvatarClick= () => fileInputRef.current?.click();
 
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -181,12 +162,8 @@ export default function Profile() {
               <div className="flex items-center gap-3"><div className="h-9 w-9 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center"><FileText className="h-5 w-5 text-purple-500" /></div><span className="text-sm font-medium text-gray-700">隐私政策</span></div>
               <ChevronRight className="h-5 w-5 text-purple-300" />
             </button>
-            <button onClick={() => navigate("/terms-of-service")} className="w-full flex items-center justify-between p-4 hover:bg-purple-50/50 transition-colors border-b border-purple-50">
+            <button onClick={() => navigate("/terms-of-service")} className="w-full flex items-center justify-between p-4 hover:bg-purple-50/50 transition-colors">
               <div className="flex items-center gap-3"><div className="h-9 w-9 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center"><FileText className="h-5 w-5 text-purple-500" /></div><span className="text-sm font-medium text-gray-700">用户协议</span></div>
-              <ChevronRight className="h-5 w-5 text-purple-300" />
-            </button>
-            <button onClick={handleCheckUpdate} disabled={checkingUpdate} className="w-full flex items-center justify-between p-4 hover:bg-purple-50/50 transition-colors">
-              <div className="flex items-center gap-3"><div className="h-9 w-9 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center">{checkingUpdate ? <RefreshCw className="h-5 w-5 text-purple-500 animate-spin" /> : <Download className="h-5 w-5 text-purple-500" />}</div><span className="text-sm font-medium text-gray-700">{checkingUpdate ? "检查中..." : "检查更新"}</span></div>
               <ChevronRight className="h-5 w-5 text-purple-300" />
             </button>
           </Card>

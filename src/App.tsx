@@ -1,68 +1,80 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import Auth from "./pages/Auth";
-import SearchFriends from "./pages/SearchFriends";
-import NotFound from "./pages/NotFound";
-import ResponsiveLayout from "./components/layout/ResponsiveLayout";
-import Discover from "./pages/Discover";
-import MomentDetail from "./pages/MomentDetail";
-import ScanQRCode from "./pages/ScanQRCode";
-import Conversations from "./pages/Conversations";
-import Contacts from "./pages/Contacts";
-import Groups from "./pages/Groups";
-import Profile from "./pages/Profile";
-import ChatDetail from "./pages/ChatDetail";
-import PersonalInfo from "./pages/PersonalInfo";
-import NotificationSettings from "./pages/NotificationSettings";
-import PrivacySecurity from "./pages/PrivacySecurity";
-import GeneralSettings from "./pages/GeneralSettings";
-import HelpFeedback from "./pages/HelpFeedback";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import AboutUs from "./pages/AboutUs";
-import DeleteAccount from "./pages/DeleteAccount";
 import OfflineIndicator from "./components/pwa/OfflineIndicator";
 import PWAUpdatePrompt from "./components/pwa/PWAUpdatePrompt";
 import GlobalCallManager from "./components/call/GlobalCallManager";
 import PushNotificationManager from "./components/push/PushNotificationManager";
 import { CallProvider } from "./contexts/CallContext";
-import JoinGroup from "./pages/JoinGroup";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
-import AdminLayout from "./components/admin/AdminLayout";
-import AdminLogin from "./pages/admin/Login";
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminPerformanceMonitor from "./pages/admin/PerformanceMonitor";
-import AdminUsers from "./pages/admin/Users";
-import AdminConversations from "./pages/admin/Conversations";
-import AdminMessages from "./pages/admin/Messages";
-import AdminTransactions from "./pages/admin/Transactions";
-import AdminRedEnvelopes from "./pages/admin/RedEnvelopes";
-import AdminTransfers from "./pages/admin/Transfers";
-import AdminCryptoReview from "./pages/admin/CryptoReview";
-import AdminFinancialManagement from "./pages/admin/FinancialManagement";
-import AdminFinancialReports from "./pages/admin/FinancialReports";
-import AdminSensitiveWords from "./pages/admin/SensitiveWords";
-import AdminPlatformSettings from "./pages/admin/PlatformSettings";
-import AdminSettings from "./pages/admin/Settings";
-import AdminArticles from "./pages/admin/Articles";
-import AdminRealNameVerifications from "./pages/admin/RealNameVerifications";
-import AdminPointProducts from "./pages/admin/PointProducts";
-import AdminMembershipTiers from "./pages/admin/MembershipTiers";
-import AdminPointOrders from "./pages/admin/PointOrders";
-import AdminNews from "./pages/admin/News";
-import AdminMoments from "./pages/admin/Moments";
-import AdminSystemMessages from "./pages/admin/SystemMessages";
-import AdminAvatarFrames from "./pages/admin/AvatarFrames";
-import AdminLuckyDrawRecords from "./pages/admin/LuckyDrawRecords";
-import AdminGifts from "./pages/admin/AdminGifts";
-import AdminUserMemberships from "./pages/admin/UserMemberships";
-import AdminCheckInSettings from "./pages/admin/CheckInSettings";
-import AdminCustomerService from "./pages/admin/CustomerService";
-import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
+
+// Lazy load pages for better code splitting
+const Auth = lazy(() => import("./pages/Auth"));
+const SearchFriends = lazy(() => import("./pages/SearchFriends"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ResponsiveLayout = lazy(() => import("./components/layout/ResponsiveLayout"));
+const Discover = lazy(() => import("./pages/Discover"));
+const MomentDetail = lazy(() => import("./pages/MomentDetail"));
+const ScanQRCode = lazy(() => import("./pages/ScanQRCode"));
+const Conversations = lazy(() => import("./pages/Conversations"));
+const Contacts = lazy(() => import("./pages/Contacts"));
+const Groups = lazy(() => import("./pages/Groups"));
+const Profile = lazy(() => import("./pages/Profile"));
+const ChatDetail = lazy(() => import("./pages/ChatDetail"));
+const PersonalInfo = lazy(() => import("./pages/PersonalInfo"));
+const NotificationSettings = lazy(() => import("./pages/NotificationSettings"));
+const PrivacySecurity = lazy(() => import("./pages/PrivacySecurity"));
+const GeneralSettings = lazy(() => import("./pages/GeneralSettings"));
+const HelpFeedback = lazy(() => import("./pages/HelpFeedback"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const AboutUs = lazy(() => import("./pages/AboutUs"));
+const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
+const JoinGroup = lazy(() => import("./pages/JoinGroup"));
+
+// Admin pages - lazy loaded
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
+const AdminLogin = lazy(() => import("./pages/admin/Login"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminPerformanceMonitor = lazy(() => import("./pages/admin/PerformanceMonitor"));
+const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const AdminConversations = lazy(() => import("./pages/admin/Conversations"));
+const AdminMessages = lazy(() => import("./pages/admin/Messages"));
+const AdminTransactions = lazy(() => import("./pages/admin/Transactions"));
+const AdminRedEnvelopes = lazy(() => import("./pages/admin/RedEnvelopes"));
+const AdminTransfers = lazy(() => import("./pages/admin/Transfers"));
+const AdminCryptoReview = lazy(() => import("./pages/admin/CryptoReview"));
+const AdminFinancialManagement = lazy(() => import("./pages/admin/FinancialManagement"));
+const AdminFinancialReports = lazy(() => import("./pages/admin/FinancialReports"));
+const AdminSensitiveWords = lazy(() => import("./pages/admin/SensitiveWords"));
+const AdminPlatformSettings = lazy(() => import("./pages/admin/PlatformSettings"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+const AdminArticles = lazy(() => import("./pages/admin/Articles"));
+const AdminRealNameVerifications = lazy(() => import("./pages/admin/RealNameVerifications"));
+const AdminPointProducts = lazy(() => import("./pages/admin/PointProducts"));
+const AdminMembershipTiers = lazy(() => import("./pages/admin/MembershipTiers"));
+const AdminPointOrders = lazy(() => import("./pages/admin/PointOrders"));
+const AdminNews = lazy(() => import("./pages/admin/News"));
+const AdminMoments = lazy(() => import("./pages/admin/Moments"));
+const AdminSystemMessages = lazy(() => import("./pages/admin/SystemMessages"));
+const AdminAvatarFrames = lazy(() => import("./pages/admin/AvatarFrames"));
+const AdminLuckyDrawRecords = lazy(() => import("./pages/admin/LuckyDrawRecords"));
+const AdminGifts = lazy(() => import("./pages/admin/AdminGifts"));
+const AdminUserMemberships = lazy(() => import("./pages/admin/UserMemberships"));
+const AdminCheckInSettings = lazy(() => import("./pages/admin/CheckInSettings"));
+const AdminCustomerService = lazy(() => import("./pages/admin/CustomerService"));
+const ProtectedAdminRoute = lazy(() => import("./components/admin/ProtectedAdminRoute"));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-screen bg-gradient-to-b from-purple-50/30 to-white">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -185,12 +197,14 @@ function App() {
         <OfflineIndicator />
         <PWAUpdatePrompt />
         <BrowserRouter>
-          <Routes>
-            {/* Admin routes - completely separate from user app, no call functionality */}
-            <Route path="/superadmin/*" element={<AdminApp />} />
-            {/* User routes - with call functionality */}
-            <Route path="/*" element={<UserApp />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Admin routes - completely separate from user app, no call functionality */}
+              <Route path="/superadmin/*" element={<AdminApp />} />
+              {/* User routes - with call functionality */}
+              <Route path="/*" element={<UserApp />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
