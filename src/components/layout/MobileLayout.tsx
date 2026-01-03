@@ -31,18 +31,7 @@ export default function MobileLayout() {
       return null;
     }
     if (location.pathname === "/conversations") {
-      return { 
-        title: "对话",
-        rightContent: (
-          <Button
-            size="icon"
-            onClick={() => setNewConversationOpen(true)}
-            className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
-          >
-            <MessageSquarePlus className="h-5 w-5" />
-          </Button>
-        )
-      };
+      return null; // Conversations page renders its own header
     }
     if (location.pathname === "/contacts") {
       return { 

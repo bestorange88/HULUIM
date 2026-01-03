@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "app.lovable.a50db10995f34b9b99cf1b4d82615234"
+    namespace "com.xunda.im"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.lovable.a50db10995f34b9b99cf1b4d82615234"
+        applicationId "com.xunda.im"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 60
-        versionName "1.0.60"
+        versionCode 1
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
@@ -17,10 +17,10 @@ android {
     
     signingConfigs {
         release {
-            storeFile file('../alo-release-key.jks')
-            storePassword System.getenv('KEYSTORE_PASSWORD')
-            keyAlias System.getenv('KEY_ALIAS')
-            keyPassword System.getenv('KEY_PASSWORD')
+            storeFile file('../xunda-release-key.jks')
+            storePassword 'xunda2026'
+            keyAlias 'xunda'
+            keyPassword 'xunda2026'
         }
     }
     

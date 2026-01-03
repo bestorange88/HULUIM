@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.a50db10995f34b9b99cf1b4d82615234',
-  appName: 'Alo生态',
+  appId: 'com.xunda.im',
+  appName: '迅达',
   webDir: 'dist',
   // server: {
   //   url: 'https://a50db109-95f3-4b9b-99cf-1b4d82615234.lovableproject.com?forceHideBadge=true',

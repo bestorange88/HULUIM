@@ -57,6 +57,7 @@ import ImageMessageViewer from "./ImageMessageViewer";
 import EditMessageDialog from "./EditMessageDialog";
 import MessageActions from "./MessageActions";
 import VoiceRecorder from "./VoiceRecorder";
+import HoldToTalkButton from "./HoldToTalkButton";
 import ForwardMessageDialog from "./ForwardMessageDialog";
 import OnlineStatus from "./OnlineStatus";
 import TypingIndicator from "./TypingIndicator";
@@ -2566,12 +2567,6 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
               </span>
             </div>
           </div>
-        ) : showVoiceRecorder ? (
-          <VoiceRecorder
-            onSend={handleVoiceSend}
-            onCancel={() => setShowVoiceRecorder(false)}
-            onRecordingChange={handleRecordingChange}
-          />
         ) : (
           <form onSubmit={handleSendMessage} className="w-full max-w-full px-2 py-2 safe-area-bottom relative overflow-x-hidden">
             {/* Mention selector for group chats */}
@@ -2687,34 +2682,10 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
                 className="flex-1 min-h-[36px] max-h-[120px] py-2 text-sm min-w-0 resize-none overflow-y-auto"
                 style={{ height: '36px' }}
               />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className={`h-9 w-9 flex-shrink-0 ${isVoiceMode ? "bg-accent" : ""}`}
-                  >
-                    <Mic className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="z-50 bg-popover">
-                  <DropdownMenuItem onClick={() => {
-                    setIsVoiceMode(true);
-                    setTranscriptionMode('none');
-                    setShowVoiceRecorder(true);
-                  }}>
-                    {t("chat.sendVoice")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    setIsVoiceMode(true);
-                    setTranscriptionMode('text');
-                    setShowVoiceRecorder(true);
-                  }}>
-                    {t("chat.voiceToText")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <HoldToTalkButton
+                onSend={handleVoiceSend}
+                onRecordingChange={handleRecordingChange}
+              />
               <Button
                 type="submit"
                 size="icon"
