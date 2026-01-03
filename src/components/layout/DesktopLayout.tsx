@@ -73,7 +73,7 @@ export default function DesktopLayout() {
       {/* 左侧边栏 - 对话列表和联系人 */}
       <div className="w-80 border-r border-border flex flex-col">
         <div className="h-14 border-b border-border flex items-center justify-between px-4">
-          <h1 className="text-lg font-semibold">Alo生态</h1>
+          <h1 className="text-lg font-semibold">讯达</h1>
           <div className="flex items-center gap-2">
             {activeTab === "conversations" && (
               <Button

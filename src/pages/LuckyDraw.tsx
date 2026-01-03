@@ -583,7 +583,7 @@ export default function LuckyDraw() {
                   参与条件
                 </h4>
                 <p className="text-muted-foreground leading-relaxed pl-8">
-                  • 开通Alo生态会员，即可获得抽奖资格
+                  • 开通讯达会员，即可获得抽奖资格
                 </p>
                 <p className="text-muted-foreground leading-relaxed pl-8">
                   • 所有会员等级每月均可免费抽奖3次
@@ -643,7 +643,7 @@ export default function LuckyDraw() {
                   • 禁止使用外挂或作弊工具，违者封号处理
                 </p>
                 <p className="text-muted-foreground leading-relaxed pl-8">
-                  • 本活动最终解释权归Alo生态所有
+                  • 本活动最终解释权归讯达所有
                 </p>
               </div>
             </div>

@@ -138,7 +138,7 @@ export default function NotificationSettings() {
           <Alert>
             <Smartphone className="h-4 w-4" />
             <AlertDescription>
-              系统推送通知仅在原生应用中可用。请下载安装 Alo生态 App 以获得完整通知体验。
+              系统推送通知仅在原生应用中可用。请下载安装 讯达 App 以获得完整通知体验。
             </AlertDescription>
           </Alert>
         )}

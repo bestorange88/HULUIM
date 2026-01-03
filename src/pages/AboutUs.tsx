@@ -18,7 +18,7 @@ export default function AboutUs() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="ml-3 text-lg font-semibold">关于Alo生态</h1>
+        <h1 className="ml-3 text-lg font-semibold">关于讯达</h1>
       </header>
 
       <ScrollArea className="flex-1">
@@ -30,7 +30,7 @@ export default function AboutUs() {
                 <MessageSquare className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold">Alo生态</h2>
+                <h2 className="text-xl font-bold">讯达</h2>
                 <p className="text-sm text-muted-foreground">连接每一个人，让沟通更简单</p>
               </div>
             </div>

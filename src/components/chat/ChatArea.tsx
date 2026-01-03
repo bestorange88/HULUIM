@@ -1296,38 +1296,41 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
   const handleSaveSettings = async (nickname: string, remark: string) => {
     if (!conversationId || !currentUser) return;
     
+    // Use nickname as the display name, fallback to remark if nickname is empty
+    const noteValue = nickname || remark || '';
+    
     try {
       // Save remark/note to conversation_settings
       const { data: existing } = await supabase
         .from('conversation_settings')
         .select('id')
-        .eq('user_id', currentUser)
+        .eq('user_id', currentUser.id)
         .eq('conversation_id', conversationId)
-        .single();
+        .maybeSingle();
       
       if (existing) {
         await supabase
           .from('conversation_settings')
-          .update({ note: remark, updated_at: new Date().toISOString() })
+          .update({ note: noteValue, updated_at: new Date().toISOString() })
           .eq('id', existing.id);
       } else {
         await supabase
           .from('conversation_settings')
           .insert({
-            user_id: currentUser,
+            user_id: currentUser.id,
             conversation_id: conversationId,
-            note: remark,
+            note: noteValue,
             is_pinned: false,
             is_muted: false
           });
       }
       
       // 更新本地conversationInfo状态，使备注立即显示
-      if (conversationInfo && remark) {
+      if (conversationInfo && noteValue) {
         setConversationInfo({
           ...conversationInfo,
-          name: remark,
-          note: remark
+          name: noteValue,
+          note: noteValue
         });
       }
       

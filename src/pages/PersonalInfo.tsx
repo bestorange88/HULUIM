@@ -13,9 +13,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
 import ChangeTransactionPasswordDialog from "@/components/wallet/ChangeTransactionPasswordDialog";
 import { useWalletEnabled } from "@/hooks/useWalletEnabled";
-import ShippingAddressManager from "@/components/profile/ShippingAddressManager";
-import BankCardManager from "@/components/profile/BankCardManager";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { validators } from "@/utils/validation";
@@ -231,15 +228,8 @@ export default function PersonalInfo() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile">{t("personalInfo.basicInfo")}</TabsTrigger>
-            <TabsTrigger value="address">{t("personalInfo.shippingAddress")}</TabsTrigger>
-            <TabsTrigger value="bank">{t("personalInfo.bankCard")}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="profile" className="space-y-6">
-            <div className="flex flex-col items-center space-y-4">
+        <div className="space-y-6">
+          <div className="flex flex-col items-center space-y-4">
               <div className="relative">
                 <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
                   <AvatarImage src={avatarUrl} />
@@ -379,16 +369,7 @@ export default function PersonalInfo() {
                 )}
               </Button>
             </div>
-          </TabsContent>
-
-          <TabsContent value="address">
-            <ShippingAddressManager />
-          </TabsContent>
-
-          <TabsContent value="bank">
-            <BankCardManager />
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
 
       {/* 修改交易密码对话框 */}
