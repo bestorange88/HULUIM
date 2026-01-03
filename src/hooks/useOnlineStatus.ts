@@ -8,12 +8,16 @@ import { supabase } from '@/integrations/supabase/client';
 export function useOnlineStatus(userId: string | null) {
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isUpdatingRef = useRef(false);
-  const hasRecordedIpRef = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
 
-    const updateOnlineStatus = async (status: 'online' | 'offline', includeIp: boolean = false) => {
+    // Reset IP recording flag when user changes (new login)
+    const isNewUser = lastUserIdRef.current !== userId;
+    lastUserIdRef.current = userId;
+
+    const updateOnlineStatus = async (status: 'online' | 'offline', recordIp: boolean = false) => {
       if (isUpdatingRef.current) return;
       isUpdatingRef.current = true;
 
@@ -23,14 +27,16 @@ export function useOnlineStatus(userId: string | null) {
           last_seen: new Date().toISOString(),
         };
 
-        // Record IP address on first online status update (login)
-        if (includeIp && !hasRecordedIpRef.current) {
+        // Record IP address on login (when recordIp is true)
+        if (recordIp) {
           try {
-            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipResponse = await fetch('https://api.ipify.org?format=json', { 
+              cache: 'no-store',
+              signal: AbortSignal.timeout(5000) // 5 second timeout
+            });
             const ipData = await ipResponse.json();
             if (ipData.ip) {
               updates.last_login_ip = ipData.ip;
-              hasRecordedIpRef.current = true;
               console.log('[OnlineStatus] Recorded login IP:', ipData.ip);
             }
           } catch (ipError) {
