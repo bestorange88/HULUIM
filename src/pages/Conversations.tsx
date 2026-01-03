@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, FolderOpen, MoreVertical, Pin, Trash2, StickyNote, Bell } from "lucide-react";
+import { Search, Plus, MoreVertical, Pin, Trash2, StickyNote, Bell, Scan, Users, UserPlus } from "lucide-react";
 import { playMessageNotification } from "@/utils/notificationSound";
 import { useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -380,14 +380,31 @@ export default function Conversations() {
       <div className="px-5 pt-4 pb-3 bg-white/80 backdrop-blur-sm border-b border-purple-100">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-emerald-600 bg-clip-text text-transparent">消息</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setGroupDialogOpen(true)}
-            className="w-9 h-9 rounded-full hover:bg-purple-50 active:bg-purple-100"
-          >
-            <FolderOpen className="w-5 h-5 text-purple-700" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-9 h-9 rounded-full hover:bg-purple-50 active:bg-purple-100"
+              >
+                <Plus className="w-5 h-5 text-purple-700" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => navigate("/scan-qr")}>
+                <Scan className="h-4 w-4 mr-2" />
+                扫一扫
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setGroupDialogOpen(true)}>
+                <Users className="h-4 w-4 mr-2" />
+                创建群组
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/search-friends")}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                添加朋友
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
         {/* Search Bar */}

@@ -242,6 +242,18 @@ class TRTCService {
         video: callType === 'video'
       });
       
+      // 设置视频编码参数 - 提高清晰度
+      // 使用720p分辨率，15fps帧率，1200kbps码率
+      if (callType === 'video') {
+        this.localStream.setVideoProfile({
+          width: 1280,
+          height: 720,
+          frameRate: 15,
+          bitrate: 1200
+        });
+        console.log('[TRTCService] Video profile set to 720p@15fps, 1200kbps');
+      }
+      
       // 初始化本地流（获取媒体设备权限）
       await this.localStream.initialize();
       console.log('[TRTCService] Local stream initialized');

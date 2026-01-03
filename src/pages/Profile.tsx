@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { QrCode, Copy, ChevronRight, Settings, LogOut, User, Bell, Lock, HelpCircle, FileText, Info, Camera, Sparkles, Loader2 } from "lucide-react";
+import { QrCode, Copy, ChevronRight, Settings, LogOut, User, Bell, Lock, HelpCircle, FileText, Info, Camera, Sparkles, Loader2, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvatarWithFrame } from "@/components/avatar/AvatarWithFrame";
@@ -141,8 +141,12 @@ export default function Profile() {
               <div className="flex items-center gap-3"><div className="h-9 w-9 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center"><Lock className="h-5 w-5 text-purple-500" /></div><span className="text-sm font-medium text-gray-700">{t("profile.privacySecurity")}</span></div>
               <ChevronRight className="h-5 w-5 text-purple-300" />
             </button>
-            <button onClick={() => navigate("/general-settings")} className="w-full flex items-center justify-between p-4 hover:bg-purple-50/50 transition-colors">
+            <button onClick={() => navigate("/general-settings")} className="w-full flex items-center justify-between p-4 hover:bg-purple-50/50 transition-colors border-b border-purple-50">
               <div className="flex items-center gap-3"><div className="h-9 w-9 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center"><Settings className="h-5 w-5 text-purple-500" /></div><span className="text-sm font-medium text-gray-700">{t("profile.generalSettings")}</span></div>
+              <ChevronRight className="h-5 w-5 text-purple-300" />
+            </button>
+            <button onClick={() => navigate("/my-favorites")} className="w-full flex items-center justify-between p-4 hover:bg-purple-50/50 transition-colors">
+              <div className="flex items-center gap-3"><div className="h-9 w-9 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg flex items-center justify-center"><Star className="h-5 w-5 text-amber-500" /></div><span className="text-sm font-medium text-gray-700">收藏夹</span></div>
               <ChevronRight className="h-5 w-5 text-purple-300" />
             </button>
           </Card>

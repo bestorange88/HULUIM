@@ -409,16 +409,6 @@ export default function Discover() {
     <div className="flex flex-col h-full bg-gradient-to-b from-background to-muted/20 overflow-hidden">
       <Header 
         title="朋友圈" 
-        rightContent={
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/scan-qr")}
-            className="text-foreground hover:bg-primary/10"
-          >
-            <Scan className="h-5 w-5" />
-          </Button>
-        }
       />
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-4 pb-24">

@@ -49,6 +49,7 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
   const [qualityMetrics, setQualityMetrics] = useState<QualityMetrics>({ quality: 'unknown' });
   const [isEndingCall, setIsEndingCall] = useState(false);
   const [remoteUserId, setRemoteUserId] = useState<string | null>(null);
+  const [isLocalInMain, setIsLocalInMain] = useState(false); // false = remote in main, local in PIP
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isCleanedUpRef = useRef(false);
@@ -474,6 +475,52 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
     console.log('[CallInterface] Speaker mode:', newSpeakerOn ? 'speaker' : 'earpiece');
   };
 
+  // 切换画中画和主画面
+  const toggleVideoLayout = useCallback(() => {
+    if (!hasRemoteVideo) return;
+    
+    const newIsLocalInMain = !isLocalInMain;
+    setIsLocalInMain(newIsLocalInMain);
+    console.log('[CallInterface] Toggling video layout, newIsLocalInMain:', newIsLocalInMain);
+    
+    // 重新播放视频流到新的容器
+    const localStream = trtcService.getLocalStream();
+    const remoteStream = remoteUserId ? trtcService.getRemoteStream(remoteUserId) : null;
+    
+    if (localStream && remoteStream) {
+      // 停止当前播放
+      try {
+        localStream.stop();
+        remoteStream.stop();
+      } catch (e) {
+        console.log('[CallInterface] Stop stream error (may be normal):', e);
+      }
+      
+      // 根据新的布局重新播放
+      // remote-video-container = 主画面（全屏）
+      // local-video-container = 画中画（右上角小窗）
+      setTimeout(() => {
+        if (newIsLocalInMain) {
+          // 切换后：本地在主画面，远端在画中画
+          localStream.play('remote-video-container', { muted: true }).catch((e: Error) => {
+            console.error('[CallInterface] Local video play error:', e);
+          });
+          remoteStream.play('local-video-container', { muted: false }).catch((e: Error) => {
+            console.error('[CallInterface] Remote video play error:', e);
+          });
+        } else {
+          // 切换后：远端在主画面，本地在画中画（默认状态）
+          remoteStream.play('remote-video-container', { muted: false }).catch((e: Error) => {
+            console.error('[CallInterface] Remote video play error:', e);
+          });
+          localStream.play('local-video-container', { muted: true }).catch((e: Error) => {
+            console.error('[CallInterface] Local video play error:', e);
+          });
+        }
+      }, 100);
+    }
+  }, [hasRemoteVideo, isLocalInMain, remoteUserId]);
+
   const handleEndCall = async () => {
     if (isEndingCall || isCleanedUpRef.current) {
       console.log('[CallInterface] End call already in progress, ignoring');
@@ -566,7 +613,7 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
       </Button>
       
       <div className="flex-1 relative bg-muted flex items-center justify-center overflow-hidden">
-        {/* Remote video container - TRTC SDK will create video element inside */}
+        {/* Main video container - shows remote by default, or local when swapped */}
         {callType === 'video' && (
           <div
             id="remote-video-container"
@@ -608,12 +655,14 @@ const CallInterface: React.FC<CallInterfaceProps> = ({
           style={{ display: 'none', position: 'absolute', width: 0, height: 0 }}
         />
 
-        {/* Local video container - TRTC SDK will create video element inside */}
+        {/* Local video container (PIP) - Click to swap with main view */}
         {callType === 'video' && (
           <div 
             id="local-video-container"
-            className="absolute top-16 right-4 w-32 h-44 rounded-lg overflow-hidden shadow-lg bg-black border-2 border-white/30"
+            className="absolute top-16 right-4 w-32 h-44 rounded-lg overflow-hidden shadow-lg bg-black border-2 border-white/30 cursor-pointer hover:border-white/60 transition-colors"
             style={{ zIndex: 10 }}
+            onClick={toggleVideoLayout}
+            title="点击切换画面"
           />
         )}
         

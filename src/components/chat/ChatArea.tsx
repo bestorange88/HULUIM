@@ -1177,8 +1177,19 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
     const file = e.target.files?.[0];
     if (!file || !conversationId || !currentUser) return;
 
+    // 200MB file size limit
+    const maxFileSize = 200 * 1024 * 1024;
+    if (file.size > maxFileSize) {
+      toast({
+        title: "文件过大",
+        description: "文件大小不能超过200MB",
+        variant: "destructive",
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
-    setShowExtensions(false);
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
@@ -1219,7 +1230,6 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
     if (!file || !conversationId || !currentUser) return;
 
     setUploading(true);
-    setShowExtensions(false);
     
     const isVideo = file.type.startsWith('video/');
     const isImage = file.type.startsWith('image/');
@@ -1234,26 +1244,17 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
       return;
     }
 
-    const maxVideoSize = 800 * 1024 * 1024;
-    const maxImageSize = 20 * 1024 * 1024;
+    // 200MB file size limit for all media
+    const maxFileSize = 200 * 1024 * 1024;
     
-    if (isVideo && file.size > maxVideoSize) {
+    if (file.size > maxFileSize) {
       toast({
-        title: "视频文件过大",
-        description: "视频大小不能超过800MB",
+        title: "文件过大",
+        description: "文件大小不能超过200MB",
         variant: "destructive",
       });
       setUploading(false);
-      return;
-    }
-    
-    if (isImage && file.size > maxImageSize) {
-      toast({
-        title: "图片文件过大",
-        description: "图片大小不能超过20MB",
-        variant: "destructive",
-      });
-      setUploading(false);
+      if (imageInputRef.current) imageInputRef.current.value = "";
       return;
     }
 
@@ -2520,114 +2521,21 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
 
       {/* Input area - not fixed, part of flex layout */}
       <div className="bg-background border-t border-border flex-shrink-0 relative">
-        {/* Extension toolbar - positioned above input */}
-        <div
-          className={`absolute bottom-full left-0 right-0 z-50 overflow-hidden transition-all duration-300 bg-background border-t border-border shadow-lg ${
-            showExtensions ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="px-3 py-2 grid grid-cols-4 gap-2">
-            {walletEnabled && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRedEnvelopeOpen(true);
-                    setShowExtensions(false);
-                  }}
-                  className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-accent transition-colors"
-                >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
-                    <Gift className="h-6 w-6 text-white" />
-                  </div>
-                  <span className="text-xs text-foreground">红包</span>
-                </button>
-                {/* 转账功能仅在私聊中显示 */}
-                {conversationInfo?.type === "direct" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTransferOpen(true);
-                      setShowExtensions(false);
-                    }}
-                    className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-accent transition-colors"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center">
-                      <Banknote className="h-6 w-6 text-white" />
-                    </div>
-                    <span className="text-xs text-foreground">转账</span>
-                  </button>
-                )}
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() => imageInputRef.current?.click()}
-              disabled={uploading}
-              className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-accent transition-colors disabled:opacity-50"
-            >
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                <ImageIcon className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xs text-foreground">图片</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-accent transition-colors disabled:opacity-50"
-            >
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                <Paperclip className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xs text-foreground">文件</span>
-            </button>
-            {conversationInfo?.type === "direct" && conversationInfo?.otherUser && (
-              <button
-                type="button"
-                onClick={() => {
-                  initiateCall(conversationId!, 'video', {
-                    id: conversationInfo.otherUser.id,
-                    display_name: conversationInfo.otherUser.display_name,
-                    avatar_url: conversationInfo.otherUser.avatar_url
-                  });
-                  setShowExtensions(false);
-                }}
-                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-accent transition-colors"
-              >
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <Video className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-xs text-foreground">视频</span>
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => navigate("/my-favorites")}
-              className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-accent transition-colors"
-            >
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                <Star className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xs text-foreground">收藏</span>
-            </button>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              onChange={handleFileUpload}
-              accept="*/*"
-            />
-            <input
-              ref={imageInputRef}
-              type="file"
-              className="hidden"
-              onChange={handleMediaUpload}
-              accept="image/*,video/*"
-            />
-          </div>
-        </div>
+        {/* Hidden file inputs for upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={handleFileUpload}
+          accept="*/*"
+        />
+        <input
+          ref={imageInputRef}
+          type="file"
+          className="hidden"
+          onChange={handleMediaUpload}
+          accept="image/*,video/*,audio/*"
+        />
 
         {/* Message input form */}
         {isBlocked || isBlockedByOther ? (
@@ -2704,10 +2612,12 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowExtensions(!showExtensions)}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
                 className="h-9 w-9 flex-shrink-0"
+                title="上传文件（限制200MB）"
               >
-                <Plus className={`h-5 w-5 transition-transform ${showExtensions ? "rotate-45" : ""}`} />
+                <Paperclip className="h-5 w-5" />
               </Button>
               <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                 <PopoverTrigger asChild>
