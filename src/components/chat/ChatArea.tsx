@@ -2318,67 +2318,62 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
                   frameStyle={message.sender?.avatar_frame || "none"}
                   size="sm"
                 />
-                <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"} max-w-[70%] min-w-0`}>
-                  <div className={`flex items-center gap-2 mb-1 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
-                    <div className={`flex items-center gap-1.5 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
-                      <p className="text-xs text-muted-foreground">
-                        {message.sender?.display_name}
-                      </p>
-                      {conversationInfo?.type === "group" && senderRole === "owner" && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                          群主
-                        </span>
-                      )}
-                      {conversationInfo?.type === "group" && senderRole === "admin" && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">
-                          管理员
-                        </span>
-                      )}
-                    </div>
-                    <div className="opacity-50 group-hover:opacity-100 transition-opacity">
-                      <MessageActions
-                        onEdit={canEdit ? () => setEditingMessage(message) : undefined}
-                        onDelete={() => handleLocalDelete(message.id)}
-                        onRecall={canRecall ? () => handleRecallMessage(message.id) : undefined}
-                        onOwnerDelete={
-                          conversationInfo?.type === "group" && currentUserRole === "owner" && !isOwn
-                            ? () => handleOwnerDeleteMessage(message.id)
-                            : undefined
-                        }
-                        onTranslate={
-                          // Hide translate for call records
-                          message.content.startsWith("[语音通话]") || message.content.startsWith("[视频通话]")
-                            ? undefined
-                            : () => handleTranslateMessage(message.id, message.content)
-                        }
-                        onTranscribe={message.type === 'audio' && message.media_url ? () => handleTranscribeAudio(message.id, message.media_url!) : undefined}
-                        onForward={() => handleForwardMessage(message)}
-                        onFavorite={() => handleFavoriteMessage(message)}
-                        onCopy={() => handleCopyMessage(message.content)}
-                        onQuote={() => handleQuoteMessage(message)}
-                        onKickMember={
-                          conversationInfo?.type === "group" && 
-                          (currentUserRole === "owner" || currentUserRole === "admin") && 
-                          !isOwn && 
-                          participantRoles.get(message.sender_id) !== "owner"
-                            ? () => handleKickMemberFromMessage(message.sender_id, message.sender?.display_name || "成员")
-                            : undefined
-                        }
-                        onSaveToGallery={
-                          message.type === "image" && message.media_url
-                            ? () => saveImageToGallery(message.media_url!)
-                            : undefined
-                        }
-                        isOwnMessage={isOwn}
-                        canRecall={canRecall}
-                        isGroupOwner={conversationInfo?.type === "group" && currentUserRole === "owner"}
-                        isGroupAdmin={conversationInfo?.type === "group" && currentUserRole === "admin"}
-                        messageType={message.type || 'text'}
-                      />
-                    </div>
-                  </div>
+                                <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"} max-w-[70%] min-w-0`}>
+                                  <div className={`flex items-center gap-1.5 mb-1 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
+                                    <p className="text-xs text-muted-foreground">
+                                      {message.sender?.display_name}
+                                    </p>
+                                    {conversationInfo?.type === "group" && senderRole === "owner" && (
+                                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                        群主
+                                      </span>
+                                    )}
+                                    {conversationInfo?.type === "group" && senderRole === "admin" && (
+                                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                                        管理员
+                                      </span>
+                                    )}
+                                  </div>
                   
-                  {(message.content.startsWith("[红包]") || message.content.startsWith("[专属红包]")) && message.media_url ? (
+                                  <MessageActions
+                                    onEdit={canEdit ? () => setEditingMessage(message) : undefined}
+                                    onDelete={() => handleLocalDelete(message.id)}
+                                    onRecall={canRecall ? () => handleRecallMessage(message.id) : undefined}
+                                    onOwnerDelete={
+                                      conversationInfo?.type === "group" && currentUserRole === "owner" && !isOwn
+                                        ? () => handleOwnerDeleteMessage(message.id)
+                                        : undefined
+                                    }
+                                    onTranslate={
+                                      message.content.startsWith("[语音通话]") || message.content.startsWith("[视频通话]")
+                                        ? undefined
+                                        : () => handleTranslateMessage(message.id, message.content)
+                                    }
+                                    onTranscribe={message.type === 'audio' && message.media_url ? () => handleTranscribeAudio(message.id, message.media_url!) : undefined}
+                                    onForward={() => handleForwardMessage(message)}
+                                    onFavorite={() => handleFavoriteMessage(message)}
+                                    onCopy={() => handleCopyMessage(message.content)}
+                                    onQuote={() => handleQuoteMessage(message)}
+                                    onKickMember={
+                                      conversationInfo?.type === "group" && 
+                                      (currentUserRole === "owner" || currentUserRole === "admin") && 
+                                      !isOwn && 
+                                      participantRoles.get(message.sender_id) !== "owner"
+                                        ? () => handleKickMemberFromMessage(message.sender_id, message.sender?.display_name || "成员")
+                                        : undefined
+                                    }
+                                    onSaveToGallery={
+                                      message.type === "image" && message.media_url
+                                        ? () => saveImageToGallery(message.media_url!)
+                                        : undefined
+                                    }
+                                    isOwnMessage={isOwn}
+                                    canRecall={canRecall}
+                                    isGroupOwner={conversationInfo?.type === "group" && currentUserRole === "owner"}
+                                    isGroupAdmin={conversationInfo?.type === "group" && currentUserRole === "admin"}
+                                    messageType={message.type || 'text'}
+                                  >
+                                  {(message.content.startsWith("[红包]") || message.content.startsWith("[专属红包]")) && message.media_url ? (
                     <RedEnvelopeMessage
                       envelopeId={message.media_url}
                       message={message.content}
@@ -2496,6 +2491,7 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
                       )}
                     </div>
                   )}
+                  </MessageActions>
                   
                   <div className="flex items-center gap-2 mt-1">
                     <p className="text-xs text-muted-foreground">
