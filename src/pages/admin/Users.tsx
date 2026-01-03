@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Edit, VolumeX, Wallet, Plus, Minus, User, Lock, Download, Users } from 'lucide-react';
+import { Search, Edit, VolumeX, Wallet, Plus, Minus, User, Lock, Download, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -73,24 +73,37 @@ export default function AdminUsers() {
   const [balanceNote, setBalanceNote] = useState('');
   const [balanceOperation, setBalanceOperation] = useState<'add' | 'subtract'>('add');
   
-  const [submitting, setSubmitting] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+  
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 25;
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
+    useEffect(() => {
+      loadUsers();
+    }, []);
 
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const filtered = users.filter(
-        (user) =>
-          user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.display_name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredUsers(filtered);
-    } else {
-      setFilteredUsers(users);
-    }
-  }, [searchQuery, users]);
+    useEffect(() => {
+      if (searchQuery.trim()) {
+        const filtered = users.filter(
+          (user) =>
+            user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            user.display_name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredUsers(filtered);
+      } else {
+        setFilteredUsers(users);
+      }
+      // Reset to first page when search query changes
+      setCurrentPage(1);
+    }, [searchQuery, users]);
+
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredUsers.length / pageSize);
+    const paginatedUsers = filteredUsers.slice(
+      (currentPage - 1) * pageSize,
+      currentPage * pageSize
+    );
 
   const loadUsers = async () => {
     try {
@@ -448,8 +461,8 @@ export default function AdminUsers() {
                                     <TableHead className="whitespace-nowrap px-2 py-2 text-right">操作</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
+                            <TableBody>
+                              {paginatedUsers.map((user) => (
                   <TableRow key={user.id} className="text-xs">
                     <TableCell className="whitespace-nowrap px-2 py-2">
                       <span className="font-mono text-primary">{user.user_id || '-'}</span>
@@ -522,13 +535,67 @@ export default function AdminUsers() {
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                    </TableBody>
+                  </Table>
+                )}
+          
+                {/* Pagination */}
+                {!loading && totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                    <div className="text-sm text-muted-foreground">
+                      显示 {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredUsers.length)} 条，共 {filteredUsers.length} 条
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        上一页
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              className="w-8 h-8 p-0"
+                              onClick={() => setCurrentPage(pageNum)}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        下一页
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-      {/* Edit User Dialog */}
+            {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh]">
           <DialogHeader>
