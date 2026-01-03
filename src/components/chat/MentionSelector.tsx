@@ -72,14 +72,15 @@ export default function MentionSelector({
         .from("conversation_participants")
         .select(`
           user_id,
-          profiles (
+          profiles!inner (
             id,
             display_name,
             avatar_url,
             username
           )
         `)
-        .eq("conversation_id", conversationId);
+        .eq("conversation_id", conversationId)
+        .neq("user_id", user.id);
 
       if (error) {
         console.error('[MentionSelector] Error fetching members:', error);

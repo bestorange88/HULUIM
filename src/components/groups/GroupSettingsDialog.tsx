@@ -317,27 +317,34 @@ export function GroupSettingsDialog({
     // Prevent duplicate submissions
     if (saving) return;
     setSaving(true);
+    console.log('[GroupSettings] Saving settings, name:', name, 'conversationId:', conversationId);
     try {
-      const { error } = await supabase
+      const updateData = {
+        name: name || null,
+        description: description || null,
+        announcement: announcement || null,
+        announcement_updated_at: announcement ? new Date().toISOString() : null,
+        tags: tags as any,
+        group_note: groupNote || null,
+        settings: settings as any,
+        require_approval: requireApproval,
+        mute_all: settings.mute_all,
+      };
+      console.log('[GroupSettings] Update data:', updateData);
+      
+      const { error, data } = await supabase
         .from("conversations")
-        .update({
-          name: name || null,
-          description: description || null,
-          announcement: announcement || null,
-          announcement_updated_at: announcement ? new Date().toISOString() : null,
-          tags: tags as any,
-          group_note: groupNote || null,
-          settings: settings as any,
-          require_approval: requireApproval,
-          mute_all: settings.mute_all,
-        } as any)
-        .eq("id", conversationId);
+        .update(updateData as any)
+        .eq("id", conversationId)
+        .select();
 
+      console.log('[GroupSettings] Update result:', { error, data });
       if (error) throw error;
 
       toast({ title: t("groups.settingsSaved") });
       onUpdate?.();
     } catch (error) {
+      console.error('[GroupSettings] Save error:', error);
       toast({ title: t("groups.saveError"), variant: "destructive" });
     } finally {
       setSaving(false);
