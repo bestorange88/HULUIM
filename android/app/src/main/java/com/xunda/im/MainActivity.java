@@ -1,4 +1,4 @@
-package app.lovable.a50db10995f34b9b99cf1b4d82615234;
+package com.xunda.im;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
