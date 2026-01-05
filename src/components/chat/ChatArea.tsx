@@ -2164,7 +2164,6 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
   return (
     <div 
       className="chat-container bg-chat-bg w-full max-w-full overflow-x-hidden"
-      style={{ paddingBottom: isKeyboardVisible ? `${keyboardHeight}px` : '0px' }}
     >
       {/* Header - fixed position, does not scroll with messages */}
       <div className="px-3 py-2 border-b border-border bg-card flex items-center justify-between z-10 safe-area-top flex-shrink-0">
