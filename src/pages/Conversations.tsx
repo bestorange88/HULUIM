@@ -466,11 +466,10 @@ export default function Conversations() {
               >
                 {/* Avatar with online indicator */}
                 <div className="relative flex-shrink-0">
-                  <AvatarWithFrame
-                    avatarUrl={conversation.avatar_url}
-                    displayName={conversation.name || "G"}
-                    frameStyle={conversation.avatar_frame || "none"}
-                    size="lg"
+                    <AvatarWithFrame
+                      avatarUrl={conversation.avatar_url}
+                      displayName={conversation.name || "G"}
+                      size="lg"
                     className="ring-2 ring-purple-100 rounded-full"
                   />
                   {(conversation.unreadCount ?? 0) > 0 && (

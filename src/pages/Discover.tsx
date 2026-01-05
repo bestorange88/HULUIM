@@ -659,7 +659,6 @@ export default function Discover() {
                     <AvatarWithFrame
                       avatarUrl={moment.profiles?.avatar_url}
                       displayName={moment.profiles?.display_name}
-                      frameStyle={moment.profiles?.avatar_frame || "none"}
                       size="md"
                       className="cursor-pointer flex-shrink-0"
                     />

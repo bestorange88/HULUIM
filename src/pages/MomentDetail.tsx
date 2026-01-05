@@ -333,7 +333,6 @@ export default function MomentDetail() {
               <AvatarWithFrame
                 avatarUrl={moment.profiles?.avatar_url}
                 displayName={moment.profiles?.display_name}
-                frameStyle={moment.profiles?.avatar_frame || "none"}
                 size="md"
               />
 
@@ -414,7 +413,6 @@ export default function MomentDetail() {
                       <AvatarWithFrame
                         avatarUrl={comment.profiles?.avatar_url}
                         displayName={comment.profiles?.display_name}
-                        frameStyle={comment.profiles?.avatar_frame || "none"}
                         size="sm"
                       />
                       

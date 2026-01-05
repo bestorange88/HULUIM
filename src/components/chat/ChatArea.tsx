@@ -2150,7 +2150,6 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
           <AvatarWithFrame
             avatarUrl={conversationInfo?.avatar_url}
             displayName={conversationInfo?.name || "C"}
-            frameStyle={conversationInfo?.avatar_frame || "none"}
             size="sm"
             className="flex-shrink-0"
           />
@@ -2320,7 +2319,6 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
                 <AvatarWithFrame
                   avatarUrl={message.sender?.avatar_url}
                   displayName={message.sender?.display_name || "U"}
-                  frameStyle={message.sender?.avatar_frame || "none"}
                   size="sm"
                 />
                                 <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"} max-w-[70%] min-w-0`}>

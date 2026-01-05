@@ -553,7 +553,6 @@ export default function Contacts() {
                       <AvatarWithFrame
                         avatarUrl={cs.avatar_url}
                         displayName={cs.display_name}
-                        frameStyle="none"
                         size="sm"
                       />
                       <div className="flex-1 min-w-0">
@@ -582,7 +581,6 @@ export default function Contacts() {
                         <AvatarWithFrame
                           avatarUrl={aiFriend.profiles.avatar_url}
                           displayName={aiFriend.profiles.display_name}
-                          frameStyle={aiFriend.profiles.avatar_frame || "none"}
                           size="sm"
                         />
                         <div className="flex-1 min-w-0">
@@ -664,7 +662,6 @@ export default function Contacts() {
                               <AvatarWithFrame
                                 avatarUrl={friend.profiles.avatar_url}
                                 displayName={friend.profiles.display_name}
-                                frameStyle={friend.profiles.avatar_frame || "none"}
                                 size="sm"
                               />
                                <div className="flex-1 min-w-0">
@@ -733,7 +730,6 @@ export default function Contacts() {
                                       <AvatarWithFrame
                                         avatarUrl={friend.profiles.avatar_url}
                                         displayName={friend.profiles.display_name}
-                                        frameStyle={friend.profiles.avatar_frame || "none"}
                                         size="sm"
                                       />
                                       <div className="flex-1 min-w-0">

@@ -4,18 +4,16 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { QrCode, Copy, ChevronRight, Settings, LogOut, User, Bell, Lock, HelpCircle, FileText, Info, Camera, Sparkles, Loader2, Star } from "lucide-react";
+import { QrCode, Copy, ChevronRight, Settings, LogOut, User, Bell, Lock, HelpCircle, FileText, Info, Camera, Loader2, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvatarWithFrame } from "@/components/avatar/AvatarWithFrame";
-import { AvatarFrameSelector } from "@/components/avatar/AvatarFrameSelector";
 import QRCode from "qrcode";
 import { copyToClipboard } from "@/utils/clipboard";
 
 export default function Profile() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
-  const [frameDialogOpen, setFrameDialogOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,15 +104,12 @@ export default function Profile() {
           <div className="relative group">
             <div className="relative cursor-pointer" onClick={handleAvatarClick}>
               <div className="w-20 h-20 rounded-full overflow-hidden ring-4 ring-purple-100">
-                <AvatarWithFrame avatarUrl={currentUser?.avatar_url} displayName={currentUser?.display_name || "User"} frameStyle={currentUser?.avatar_frame || "none"} size="xl" className="transition-all duration-300 group-hover:scale-105" />
+                <AvatarWithFrame avatarUrl={currentUser?.avatar_url} displayName={currentUser?.display_name || "User"} size="xl" className="transition-all duration-300 group-hover:scale-105" />
               </div>
               <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                 {uploading ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
               </div>
             </div>
-            <button className="absolute -bottom-0.5 -right-0.5 h-6 w-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 border-2 border-white" onClick={(e) => { e.stopPropagation(); setFrameDialogOpen(true); }}>
-              <Sparkles className="h-3 w-3 text-white" />
-            </button>
           </div>
           <div className="flex flex-col gap-1">
             <h2 className="text-xl font-bold text-gray-900">{currentUser?.display_name || "加载中..."}</h2>
@@ -194,7 +189,6 @@ export default function Profile() {
           </div>
         </DialogContent>
       </Dialog>
-      <AvatarFrameSelector open={frameDialogOpen} onOpenChange={setFrameDialogOpen} currentFrame={currentUser?.avatar_frame || "none"} avatarUrl={currentUser?.avatar_url} displayName={currentUser?.display_name || "User"} userTier={null} onFrameSelected={(frameId) => setCurrentUser((prev: any) => ({ ...prev, avatar_frame: frameId }))} />
     </div>
   );
 }
