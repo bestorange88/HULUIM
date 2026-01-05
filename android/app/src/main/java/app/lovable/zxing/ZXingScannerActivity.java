@@ -29,7 +29,7 @@ public class ZXingScannerActivity extends AppCompatActivity {
         integrator.setBeepEnabled(true);
         integrator.setBarcodeImageEnabled(false);
         integrator.setOrientationLocked(false);
-        integrator.setCaptureActivity(CaptureActivity.class);
+        integrator.setCaptureActivity(CustomCaptureActivity.class);
         integrator.initiateScan();
     }
 

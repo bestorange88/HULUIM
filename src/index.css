@@ -950,3 +950,46 @@
   max-width: 100%;
   padding: 8px;
 }
+
+/* ========================================
+   Mobile Keyboard Input Fix
+   Ensures input area stays above virtual keyboard
+   ======================================== */
+
+/* When keyboard is open, use visual viewport to position elements */
+@supports (height: 100dvh) {
+  .chat-input-container {
+    /* Use dynamic viewport height which accounts for keyboard */
+    position: sticky;
+    bottom: 0;
+  }
+}
+
+/* Fallback for browsers without dvh support */
+.keyboard-aware-input {
+  position: relative;
+  z-index: 50;
+  background: inherit;
+}
+
+/* Ensure the chat container uses flex layout properly */
+.chat-flex-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chat-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chat-input-area {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  background-color: hsl(var(--background));
+}

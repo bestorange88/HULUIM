@@ -770,29 +770,52 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
 
   // Handle mobile virtual keyboard - ensure input is visible when keyboard opens
   useEffect(() => {
+    let lastViewportHeight = window.visualViewport?.height || window.innerHeight;
+    
     const handleViewportResize = () => {
-      // When virtual keyboard opens, scroll input into view
-      if (document.activeElement === textareaRef.current) {
+      const currentHeight = window.visualViewport?.height || window.innerHeight;
+      const heightDiff = lastViewportHeight - currentHeight;
+      
+      // Keyboard is likely open if viewport height decreased significantly (> 100px)
+      if (heightDiff > 100 && document.activeElement === textareaRef.current) {
+        // Scroll the input into view with a slight delay to ensure keyboard is fully open
         setTimeout(() => {
-          textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }, 100);
+          textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Also scroll the messages area to show the latest messages
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 150);
       }
+      
+      lastViewportHeight = currentHeight;
+    };
+
+    // Handle focus on textarea - scroll into view when focused
+    const handleFocus = () => {
+      setTimeout(() => {
+        textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
     };
 
     // Use visualViewport API if available (more reliable for mobile keyboards)
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleViewportResize);
       window.visualViewport.addEventListener('scroll', handleViewportResize);
-      return () => {
-        window.visualViewport?.removeEventListener('resize', handleViewportResize);
-        window.visualViewport?.removeEventListener('scroll', handleViewportResize);
-      };
+    } else {
+      // Fallback for browsers without visualViewport
+      window.addEventListener('resize', handleViewportResize);
     }
     
-    // Fallback for browsers without visualViewport
-    window.addEventListener('resize', handleViewportResize);
+    // Add focus listener to textarea
+    textareaRef.current?.addEventListener('focus', handleFocus);
+    
     return () => {
-      window.removeEventListener('resize', handleViewportResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportResize);
+        window.visualViewport.removeEventListener('scroll', handleViewportResize);
+      } else {
+        window.removeEventListener('resize', handleViewportResize);
+      }
+      textareaRef.current?.removeEventListener('focus', handleFocus);
     };
   }, []);
 

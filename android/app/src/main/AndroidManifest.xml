@@ -56,6 +56,14 @@
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="false" />
 
+        <activity
+            android:name="app.lovable.zxing.CustomCaptureActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:stateNotNeeded="true"
+            android:windowSoftInputMode="stateAlwaysHidden"
+            android:exported="false" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

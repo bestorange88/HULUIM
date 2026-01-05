@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ZXing scanner colors -->
+    <color name="zxing_viewfinder_mask">#80000000</color>
+    <color name="zxing_viewfinder_laser">#FF6B4EFF</color>
+    <color name="zxing_possible_result_points">#C06B4EFF</color>
+    <color name="zxing_result_view">#B0000000</color>
+    
+    <!-- App colors -->
+    <color name="primary">#6B4EFF</color>
+    <color name="primary_dark">#5A3FE0</color>
+    <color name="accent">#6B4EFF</color>
+</resources>
