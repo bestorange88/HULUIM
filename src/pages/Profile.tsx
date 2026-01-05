@@ -103,9 +103,7 @@ export default function Profile() {
         <div className="flex items-center gap-4">
           <div className="relative group">
             <div className="relative cursor-pointer" onClick={handleAvatarClick}>
-              <div className="w-20 h-20 rounded-full overflow-hidden ring-4 ring-purple-100">
-                <AvatarWithFrame avatarUrl={currentUser?.avatar_url} displayName={currentUser?.display_name || "User"} size="xl" className="transition-all duration-300 group-hover:scale-105" />
-              </div>
+              <AvatarWithFrame avatarUrl={currentUser?.avatar_url} displayName={currentUser?.display_name || "User"} size="xl" className="transition-all duration-300 group-hover:scale-105 ring-4 ring-purple-100 rounded-full" />
               <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                 {uploading ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
               </div>
