@@ -287,17 +287,17 @@ export default function Conversations() {
     }
   };
 
-  const handlePinConversation = async (conversationId: string, isPinned: boolean) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const handlePinConversation = async (conversationId: string, isPinned: boolean) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const { error } = await supabase
-      .from("conversation_settings")
-      .upsert({
-        user_id: user.id,
-        conversation_id: conversationId,
-        is_pinned: !isPinned,
-      });
+      const { error } = await supabase
+        .from("conversation_settings")
+        .upsert({
+          user_id: user.id,
+          conversation_id: conversationId,
+          is_pinned: !isPinned,
+        }, { onConflict: "user_id,conversation_id" });
 
     if (error) {
       toast({
@@ -344,16 +344,16 @@ export default function Conversations() {
     setNoteDialogOpen(true);
   };
 
-  const handleSaveNote = async () => {
-    if (!selectedConversation || !currentUserId) return;
+    const handleSaveNote = async () => {
+      if (!selectedConversation || !currentUserId) return;
 
-    const { error } = await supabase
-      .from("conversation_settings")
-      .upsert({
-        user_id: currentUserId,
-        conversation_id: selectedConversation.id,
-        note: noteText.trim() || null,
-      });
+      const { error } = await supabase
+        .from("conversation_settings")
+        .upsert({
+          user_id: currentUserId,
+          conversation_id: selectedConversation.id,
+          note: noteText.trim() || null,
+        }, { onConflict: "user_id,conversation_id" });
 
     if (error) {
       toast({
