@@ -151,13 +151,16 @@
     height: 100%;
     width: 100%;
     max-width: 100vw;
-    overflow: hidden;
     overflow-x: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    /* Keyboard inset variable - set by JS when keyboard opens */
+    --keyboard-inset: 0px;
+  }
+  
+  /* Only use fixed positioning on non-Android or when keyboard is not active */
+  @supports not (height: 100dvh) {
+    html, body, #root {
+      overflow: hidden;
+    }
   }
   
   /* Prevent any element from causing horizontal overflow */

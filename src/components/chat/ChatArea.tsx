@@ -70,6 +70,7 @@ import { useWalletEnabled } from "@/hooks/useWalletEnabled";
 import MentionSelector from "./MentionSelector";
 import { copyToClipboard } from "@/utils/clipboard";
 import { saveImageToGallery } from "@/utils/gallerySaver";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 
 interface Message {
   id: string;
@@ -157,6 +158,9 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
   const { initiateCall } = useCall();
   const { t } = useTranslation();
   const { walletEnabled } = useWalletEnabled();
+  
+  // Keyboard height hook for mobile keyboard handling
+  const { keyboardHeight, isKeyboardVisible } = useKeyboardHeight();
 
   // Presence hook for online status and typing/recording indicators
   const { otherUserPresence, setTyping, setRecording, typingDisabled } = usePresence({
@@ -2158,7 +2162,10 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
   }
 
   return (
-    <div className="chat-container bg-chat-bg w-full max-w-full overflow-x-hidden">
+    <div 
+      className="chat-container bg-chat-bg w-full max-w-full overflow-x-hidden"
+      style={{ paddingBottom: isKeyboardVisible ? `${keyboardHeight}px` : '0px' }}
+    >
       {/* Header - fixed position, does not scroll with messages */}
       <div className="px-3 py-2 border-b border-border bg-card flex items-center justify-between z-10 safe-area-top flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0 flex-1">
