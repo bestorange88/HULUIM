@@ -35,6 +35,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const AboutUs = lazy(() => import("./pages/AboutUs"));
 const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 const JoinGroup = lazy(() => import("./pages/JoinGroup"));
+const SystemMessages = lazy(() => import("./pages/SystemMessages"));
 
 // Admin pages - lazy loaded
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -136,6 +137,7 @@ const UserApp: React.FC = () => {
           <Route path="/delete-account" element={<DeleteAccount />} />
           <Route path="/search-friends" element={<SearchFriends />} />
           <Route path="/scan-qr" element={<ScanQRCode />} />
+          <Route path="/system-messages" element={<SystemMessages />} />
         </Route>
         <Route path="/join/:code" element={<JoinGroup />} />
         <Route path="*" element={<NotFound />} />

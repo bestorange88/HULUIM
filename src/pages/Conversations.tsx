@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, MoreVertical, Pin, Trash2, StickyNote, Bell, Scan, Users, UserPlus } from "lucide-react";
+import { Search, Plus, MoreVertical, Pin, Trash2, StickyNote, Scan, Users, UserPlus, Shield } from "lucide-react";
 import { playMessageNotification } from "@/utils/notificationSound";
 import { useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -422,35 +422,49 @@ export default function Conversations() {
 
       <div className="flex-1 overflow-y-auto">
         <div className="divide-y divide-border pb-20">
-          {/* System Messages */}
+          {/* 迅达官方 - System Messages as a conversation */}
           {systemMessages.length > 0 && (
-            <div className="p-4 bg-accent/5 border-b-2 border-primary/20">
-              <div className="flex items-center gap-2 mb-3">
-                <Bell className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">系统消息</span>
-              </div>
-              <div className="space-y-2">
-                {systemMessages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className="p-3 rounded-lg bg-card border border-border hover:bg-accent/5 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <p className="font-medium text-sm mb-1">{msg.title}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {msg.content}
-                        </p>
-                      </div>
-                      <Badge variant={msg.type === 'warning' ? 'destructive' : 'default'} className="text-xs">
-                        {msg.type === 'info' && '通知'}
-                        {msg.type === 'warning' && '警告'}
-                        {msg.type === 'announcement' && '公告'}
+            <div className="relative group">
+              <button
+                onClick={() => navigate("/system-messages")}
+                className="w-full px-5 py-3.5 flex items-center gap-3 active:bg-purple-50/50 transition-all text-left"
+              >
+                {/* Official Avatar */}
+                <div className="relative flex-shrink-0">
+                  <div className="h-14 w-14 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center ring-2 ring-purple-100">
+                    <Shield className="h-7 w-7 text-white" />
+                  </div>
+                  {systemMessages.length > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[11px] rounded-full flex items-center justify-center shadow-sm z-10">
+                      {systemMessages.length > 99 ? '99+' : systemMessages.length}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex-1 min-w-0 pr-8">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-[15px] font-medium text-gray-900 truncate">
+                        迅达官方
+                      </h3>
+                      <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4 bg-purple-500">
+                        官方
                       </Badge>
                     </div>
+                    {systemMessages[0]?.created_at && (
+                      <span className="text-xs text-purple-400 flex-shrink-0 ml-2">
+                        {formatDistanceToNow(new Date(systemMessages[0].created_at), {
+                          addSuffix: false,
+                          locale: zhCN,
+                        })}
+                      </span>
+                    )}
                   </div>
-                ))}
-              </div>
+                  <p className="text-[13px] text-gray-500 truncate">
+                    {systemMessages[0]?.title || "暂无消息"}
+                  </p>
+                </div>
+              </button>
             </div>
           )}
 
