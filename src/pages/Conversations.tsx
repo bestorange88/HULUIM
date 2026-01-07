@@ -9,7 +9,7 @@ import { playMessageNotification } from "@/utils/notificationSound";
 import { useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
-import ConversationGroupDialog from "@/components/groups/ConversationGroupDialog";
+import NewConversationDialog from "@/components/chat/NewConversationDialog";
 import { AvatarWithFrame } from "@/components/avatar/AvatarWithFrame";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -605,14 +605,11 @@ export default function Conversations() {
         </DialogContent>
       </Dialog>
 
-      <ConversationGroupDialog
+      <NewConversationDialog
         open={groupDialogOpen}
         onOpenChange={setGroupDialogOpen}
-        onSuccess={() => {
-          toast({
-            title: t("common.success"),
-            description: t("groups.groupCreated"),
-          });
+        onConversationCreated={(conversationId) => {
+          navigate(`/chat/${conversationId}`);
         }}
       />
     </div>
