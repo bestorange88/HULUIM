@@ -231,6 +231,35 @@ export default function VoiceRecorder({ onSend, onCancel, onRecordingChange }: V
     }
   };
 
+  // Mouse handlers for PC/Desktop support
+  const handleMouseDown = (e: React.MouseEvent) => {
+    startYRef.current = e.clientY;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (e.buttons !== 1) return; // Only track when mouse button is pressed
+    const currentY = e.clientY;
+    const diff = startYRef.current - currentY;
+    const newIsCancelling = diff > 50; // Move up more than 50px to cancel
+    
+    if (newIsCancelling !== isCancelling) {
+      setIsCancelling(newIsCancelling);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isCancelling) {
+      handleCancel();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    // Reset cancelling state when mouse leaves the component
+    if (isCancelling) {
+      setIsCancelling(false);
+    }
+  };
+
   if (permissionDenied) {
     return (
       <div className="flex flex-col gap-3 p-4 bg-card border-t border-border safe-area-bottom">
@@ -244,13 +273,17 @@ export default function VoiceRecorder({ onSend, onCancel, onRecordingChange }: V
     );
   }
 
-  return (
-    <div 
-      className="flex flex-col gap-3 p-4 bg-card border-t border-border safe-area-bottom"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+    return (
+      <div 
+        className="flex flex-col gap-3 p-4 bg-card border-t border-border safe-area-bottom"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+      >
       {/* Recording indicator */}
       <div className="flex items-center justify-center gap-3">
         <div className={cn(

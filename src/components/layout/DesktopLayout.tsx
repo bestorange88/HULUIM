@@ -1,7 +1,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MessageSquare, Users, UserCircle, MessageSquarePlus, UserPlus, Wallet, Settings, ExternalLink } from "lucide-react";
+import { MessageSquare, Users, UserCircle, MessageSquarePlus, UserPlus, Settings, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -146,15 +146,11 @@ export default function DesktopLayout() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => navigate("/profile")}>
-                <UserCircle className="h-4 w-4 mr-2" />
-                个人资料
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/wallet")}>
-                <Wallet className="h-4 w-4 mr-2" />
-                我的钱包
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => navigate("/profile")}>
+                              <UserCircle className="h-4 w-4 mr-2" />
+                              个人资料
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/notification-settings")}>
                 通知设置
               </DropdownMenuItem>
