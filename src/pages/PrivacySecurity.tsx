@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ChevronRight, Shield, Lock, Eye, UserX, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, Shield, Lock, Eye, UserX, Trash2, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
@@ -43,12 +43,13 @@ export default function PrivacySecurity() {
     confirm: "",
   });
   
-  const [privacy, setPrivacy] = useState({
-    showOnlineStatus: true,
-    allowFriendRequests: true,
-    showProfileToStrangers: false,
-    readReceipts: true,
-  });
+    const [privacy, setPrivacy] = useState({
+      showOnlineStatus: true,
+      allowFriendRequests: true,
+      showProfileToStrangers: false,
+      readReceipts: true,
+      enableLocation: false,
+    });
 
   useEffect(() => {
     loadPrivacySettings();
@@ -270,18 +271,39 @@ export default function PrivacySecurity() {
                   {t("privacy.readReceiptsDesc")}
                 </p>
               </div>
-              <Switch
-                id="readReceipts"
-                checked={privacy.readReceipts}
-                onCheckedChange={(checked) =>
-                  savePrivacySettings({ ...privacy, readReceipts: checked })
-                }
-              />
-            </div>
-          </div>
-        </div>
+                      <Switch
+                        id="readReceipts"
+                        checked={privacy.readReceipts}
+                        onCheckedChange={(checked) =>
+                          savePrivacySettings({ ...privacy, readReceipts: checked })
+                        }
+                      />
+                    </div>
 
-        {/* Blocked Users */}
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-card border border-border">
+                      <div className="flex-1 space-y-1">
+                        <Label htmlFor="enableLocation" className="text-base font-medium">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-blue-500" />
+                            开启定位
+                          </div>
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          开启后可使用"附近的人"功能
+                        </p>
+                      </div>
+                      <Switch
+                        id="enableLocation"
+                        checked={privacy.enableLocation}
+                        onCheckedChange={(checked) =>
+                          savePrivacySettings({ ...privacy, enableLocation: checked })
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Blocked Users */}
         <div className="space-y-2">
           <h2 className="text-sm font-semibold text-muted-foreground px-2 flex items-center gap-2">
             <UserX className="h-4 w-4" />

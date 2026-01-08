@@ -38,6 +38,9 @@ const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 const JoinGroup = lazy(() => import("./pages/JoinGroup"));
 const SystemMessages = lazy(() => import("./pages/SystemMessages"));
 const MyFavorites = lazy(() => import("./pages/MyFavorites"));
+const Moments = lazy(() => import("./pages/Moments"));
+const Shop = lazy(() => import("./pages/Shop"));
+const NearbyPeople = lazy(() => import("./pages/NearbyPeople"));
 
 // Admin pages - lazy loaded
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -121,8 +124,11 @@ const UserApp: React.FC = () => {
         <Route path="/" element={<Navigate to="/conversations" replace />} />
         <Route path="/auth" element={<Auth />} />
         <Route element={<ResponsiveLayout />}>
-          <Route path="/discover" element={<Discover />} />
-          <Route path="/moment/:momentId" element={<MomentDetail />} />
+                    <Route path="/discover" element={<Discover />} />
+                    <Route path="/moments" element={<Moments />} />
+                    <Route path="/shop" element={<Shop />} />
+                    <Route path="/nearby" element={<NearbyPeople />} />
+                    <Route path="/moment/:momentId" element={<MomentDetail />} />
           <Route path="/conversations" element={<Conversations />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/groups" element={<Groups />} />

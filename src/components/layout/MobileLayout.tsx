@@ -18,7 +18,7 @@ export default function MobileLayout() {
   const navItems = [
     { path: "/conversations", icon: MessageCircle, label: "消息" },
     { path: "/contacts", icon: BookUser, label: "通讯录" },
-    { path: "/discover", icon: Compass, label: "朋友圈" },
+    { path: "/discover", icon: Compass, label: "发现" },
     { path: "/profile", icon: UserCircle, label: "我的" },
   ];
 
