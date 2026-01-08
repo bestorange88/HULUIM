@@ -466,7 +466,7 @@ export default function Stories() {
               }}
             >
               <div className={cn(
-                "w-16 h-16 rounded-full p-0.5",
+                "w-16 h-16 rounded-md p-0.5",
                 myStories.length > 0 ? "bg-gradient-to-tr from-purple-500 to-pink-500" : "bg-gray-300"
               )}>
                 <Avatar className="w-full h-full border-2 border-white">
@@ -475,7 +475,7 @@ export default function Stories() {
                 </Avatar>
               </div>
               {myStories.length === 0 && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-500 rounded flex items-center justify-center">
                   <Plus className="h-4 w-4 text-white" />
                 </div>
               )}
@@ -530,7 +530,7 @@ export default function Stories() {
                       onClick={() => openViewer(actualIndex)}
                     >
                       <div className={cn(
-                        "w-14 h-14 rounded-full p-0.5",
+                        "w-14 h-14 rounded-md p-0.5",
                         user.hasUnviewed 
                           ? "bg-gradient-to-tr from-purple-500 to-pink-500" 
                           : "bg-gray-300"

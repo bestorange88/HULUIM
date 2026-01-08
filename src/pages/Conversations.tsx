@@ -548,7 +548,7 @@ export default function Conversations() {
             onClick={() => navigate("/stories")}
           >
             <div className={cn(
-              "w-14 h-14 rounded-full p-0.5 relative",
+              "w-14 h-14 rounded-md p-0.5 relative",
               myStoryCount > 0 ? "bg-gradient-to-tr from-purple-500 to-pink-500" : "bg-gray-300"
             )}>
               <Avatar className="w-full h-full border-2 border-white">
@@ -556,7 +556,7 @@ export default function Conversations() {
                 <AvatarFallback>Me</AvatarFallback>
               </Avatar>
               {myStoryCount === 0 && (
-                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center border-2 border-white">
+                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-purple-500 rounded flex items-center justify-center border-2 border-white">
                   <Plus className="h-3 w-3 text-white" />
                 </div>
               )}
@@ -574,7 +574,7 @@ export default function Conversations() {
                         onClick={() => navigate(`/stories?user=${user.user_id}`)}
                       >
               <div className={cn(
-                "w-14 h-14 rounded-full p-0.5",
+                "w-14 h-14 rounded-md p-0.5",
                 user.hasUnviewed 
                   ? "bg-gradient-to-tr from-purple-500 to-pink-500" 
                   : "bg-gray-300"
@@ -613,7 +613,7 @@ export default function Conversations() {
               >
                 {/* Official Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="h-14 w-14 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center ring-2 ring-purple-100">
+                  <div className="h-14 w-14 rounded-md bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center ring-2 ring-purple-100">
                     <Shield className="h-7 w-7 text-white" />
                   </div>
                   {systemMessages.length > 0 && (
@@ -666,7 +666,7 @@ export default function Conversations() {
                       avatarUrl={conversation.avatar_url}
                       displayName={conversation.name || "G"}
                       size="lg"
-                    className="ring-2 ring-purple-100 rounded-full"
+                    className="ring-2 ring-purple-100 rounded-md"
                   />
                   {(conversation.unreadCount ?? 0) > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[11px] rounded-full flex items-center justify-center shadow-sm z-10">

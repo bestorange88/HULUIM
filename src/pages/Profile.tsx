@@ -200,7 +200,7 @@ export default function Profile() {
               avatarUrl={currentUser?.avatar_url} 
               displayName={currentUser?.display_name || "User"} 
               size="xl" 
-              className="transition-all duration-300 group-hover:scale-105 ring-4 ring-purple-100 rounded-full" 
+              className="transition-all duration-300 group-hover:scale-105 ring-4 ring-purple-100 rounded-md" 
             />
           </div>
           
@@ -222,7 +222,7 @@ export default function Profile() {
                       onClick={handleStoryClick}
                     >
                       <div className={cn(
-                        "w-10 h-10 rounded-full p-0.5 relative",
+                        "w-10 h-10 rounded-md p-0.5 relative",
                         myStoryCount > 0 ? "bg-gradient-to-tr from-purple-500 to-pink-500" : "bg-gray-300"
                       )}>
                         <Avatar className="w-full h-full border-2 border-white">
@@ -230,7 +230,7 @@ export default function Profile() {
                           <AvatarFallback>Me</AvatarFallback>
                         </Avatar>
                         {myStoryCount === 0 && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center border-2 border-white">
+                          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-purple-500 rounded flex items-center justify-center border-2 border-white">
                             <Plus className="h-2.5 w-2.5 text-white" />
                           </div>
                         )}
@@ -247,12 +247,12 @@ export default function Profile() {
                         className="flex flex-col items-center gap-0.5 flex-shrink-0 cursor-pointer"
                         onClick={handleStoryClick}
                       >
-                        <div className={cn(
-                          "w-10 h-10 rounded-full p-0.5",
-                          user.hasUnviewed 
-                            ? "bg-gradient-to-tr from-purple-500 to-pink-500" 
-                            : "bg-gray-300"
-                        )}>
+                          <div className={cn(
+                            "w-10 h-10 rounded-md p-0.5",
+                            user.hasUnviewed 
+                              ? "bg-gradient-to-tr from-purple-500 to-pink-500" 
+                              : "bg-gray-300"
+                          )}>
                           <Avatar className="w-full h-full border-2 border-white">
                             <AvatarImage src={user.avatar_url} />
                             <AvatarFallback>{user.display_name[0]}</AvatarFallback>
