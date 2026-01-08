@@ -261,34 +261,18 @@ export default function Contacts() {
       </div>
 
       <div className="flex-1 overflow-y-auto" ref={scrollAreaRef}>
-        {/* Function Entries - WeChat style */}
-        <div className="bg-background">
-          {/* New Friends */}
-          <div 
-            className="flex items-center px-4 py-3 border-b border-border/50 cursor-pointer hover:bg-accent/5 active:bg-accent/10"
-            onClick={() => navigate("/search-friends")}
-          >
-            <div className="w-10 h-10 rounded bg-orange-500 flex items-center justify-center mr-3">
-              <UserPlus className="h-5 w-5 text-white" />
-            </div>
-            <span className="flex-1 text-[15px]">新的朋友</span>
-            {pendingCount > 0 && (
-              <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
-                {pendingCount}
-              </span>
-            )}
-          </div>
-
-          {/* Group Chats */}
-          <div 
-            className="flex items-center px-4 py-3 border-b border-border/50 cursor-pointer hover:bg-accent/5 active:bg-accent/10"
-            onClick={() => navigate("/")}
-          >
-            <div className="w-10 h-10 rounded bg-green-500 flex items-center justify-center mr-3">
-              <Users className="h-5 w-5 text-white" />
-            </div>
-            <span className="flex-1 text-[15px]">群聊</span>
-          </div>
+                {/* Function Entries - WeChat style */}
+                <div className="bg-background">
+                  {/* Group Chats */}
+                  <div 
+                    className="flex items-center px-4 py-3 border-b border-border/50 cursor-pointer hover:bg-accent/5 active:bg-accent/10"
+                    onClick={() => navigate("/groups")}
+                  >
+                    <div className="w-10 h-10 rounded bg-green-500 flex items-center justify-center mr-3">
+                      <Users className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="flex-1 text-[15px]">群聊</span>
+                  </div>
 
                                             {/* AI Assistant */}
                           {systemFriends.find(f => f.profiles.username === 'ai_assistant') && (() => {
