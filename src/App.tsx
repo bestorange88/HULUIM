@@ -39,6 +39,7 @@ const JoinGroup = lazy(() => import("./pages/JoinGroup"));
 const SystemMessages = lazy(() => import("./pages/SystemMessages"));
 const MyFavorites = lazy(() => import("./pages/MyFavorites"));
 const Moments = lazy(() => import("./pages/Moments"));
+const Stories = lazy(() => import("./pages/Stories"));
 const Shop = lazy(() => import("./pages/Shop"));
 const NearbyPeople = lazy(() => import("./pages/NearbyPeople"));
 
@@ -125,8 +126,9 @@ const UserApp: React.FC = () => {
         <Route path="/auth" element={<Auth />} />
         <Route element={<ResponsiveLayout />}>
                     <Route path="/discover" element={<Discover />} />
-                    <Route path="/moments" element={<Moments />} />
-                    <Route path="/shop" element={<Shop />} />
+                                        <Route path="/moments" element={<Moments />} />
+                                        <Route path="/stories" element={<Stories />} />
+                                        <Route path="/shop" element={<Shop />} />
                     <Route path="/nearby" element={<NearbyPeople />} />
                     <Route path="/moment/:momentId" element={<MomentDetail />} />
           <Route path="/conversations" element={<Conversations />} />

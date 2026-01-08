@@ -68,7 +68,7 @@ export default function Profile() {
   };
 
     const handleStoryClick = () => {
-      navigate("/moments");
+      navigate("/stories");
     };
 
   return (
