@@ -519,20 +519,24 @@ export default function Conversations() {
                 <Plus className="w-5 h-5 text-purple-700" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={() => navigate("/scan-qr")}>
-                <Scan className="h-4 w-4 mr-2" />
-                扫一扫
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setGroupDialogOpen(true)}>
-                <Users className="h-4 w-4 mr-2" />
-                创建群组
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/search-friends")}>
-                <UserPlus className="h-4 w-4 mr-2" />
-                添加朋友
-              </DropdownMenuItem>
-            </DropdownMenuContent>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => navigate("/scan-qr")}>
+                            <Scan className="h-4 w-4 mr-2" />
+                            扫一扫
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setGroupDialogOpen(true)}>
+                            <Users className="h-4 w-4 mr-2" />
+                            创建群组
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate("/search-friends")}>
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            添加朋友
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate("/stories?create=true")}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            发布动态
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
           </DropdownMenu>
         </div>
         
@@ -562,13 +566,13 @@ export default function Conversations() {
             </span>
           </div>
           
-          {/* Friends' Stories */}
-          {storyUsers.map((user) => (
-            <div 
-              key={user.user_id}
-              className="flex flex-col items-center gap-1 flex-shrink-0 cursor-pointer"
-              onClick={() => navigate("/stories")}
-            >
+                    {/* Friends' Stories */}
+                    {storyUsers.map((user) => (
+                      <div 
+                        key={user.user_id}
+                        className="flex flex-col items-center gap-1 flex-shrink-0 cursor-pointer"
+                        onClick={() => navigate(`/stories?user=${user.user_id}`)}
+                      >
               <div className={cn(
                 "w-14 h-14 rounded-full p-0.5",
                 user.hasUnviewed 

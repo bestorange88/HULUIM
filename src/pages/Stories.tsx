@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -35,6 +35,7 @@ interface UserWithStories {
 
 export default function Stories() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [usersWithStories, setUsersWithStories] = useState<UserWithStories[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -43,6 +44,7 @@ export default function Stories() {
   const [uploading, setUploading] = useState(false);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [initialUserHandled, setInitialUserHandled] = useState(false);
   
   // Publish dialog state
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
@@ -59,9 +61,31 @@ export default function Stories() {
   const [progress, setProgress] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    fetchStories();
-  }, []);
+    useEffect(() => {
+      fetchStories();
+    }, []);
+
+    // Handle URL parameters after stories are loaded
+    useEffect(() => {
+      if (loading || initialUserHandled || usersWithStories.length === 0) return;
+    
+      const targetUserId = searchParams.get("user");
+      const shouldCreate = searchParams.get("create");
+    
+      if (shouldCreate === "true") {
+        videoInputRef.current?.click();
+        setInitialUserHandled(true);
+        return;
+      }
+    
+      if (targetUserId) {
+        const userIndex = usersWithStories.findIndex(u => u.user_id === targetUserId);
+        if (userIndex >= 0) {
+          openViewer(userIndex);
+        }
+        setInitialUserHandled(true);
+      }
+    }, [loading, usersWithStories, searchParams, initialUserHandled]);
 
   useEffect(() => {
     return () => {
