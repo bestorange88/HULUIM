@@ -30,6 +30,7 @@ const NotificationSettings = lazy(() => import("./pages/NotificationSettings"));
 const PrivacySecurity = lazy(() => import("./pages/PrivacySecurity"));
 const GeneralSettings = lazy(() => import("./pages/GeneralSettings"));
 const HelpFeedback = lazy(() => import("./pages/HelpFeedback"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const AboutUs = lazy(() => import("./pages/AboutUs"));
@@ -131,6 +132,7 @@ const UserApp: React.FC = () => {
           <Route path="/privacy-security" element={<PrivacySecurity />} />
           <Route path="/general-settings" element={<GeneralSettings />} />
           <Route path="/help-feedback" element={<HelpFeedback />} />
+          <Route path="/help-center" element={<HelpCenter />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/about-us" element={<AboutUs />} />
