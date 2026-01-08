@@ -4,17 +4,28 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { QrCode, Copy, ChevronRight, LogOut, Star, HelpCircle, Settings, Lock, ShoppingBag, Video } from "lucide-react";
+import { QrCode, Copy, ChevronRight, LogOut, Star, HelpCircle, Settings, Lock, ShoppingBag, Video, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvatarWithFrame } from "@/components/avatar/AvatarWithFrame";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import QRCode from "qrcode";
 import { copyToClipboard } from "@/utils/clipboard";
+import { cn } from "@/lib/utils";
+
+interface StoryUser {
+  user_id: string;
+  display_name: string;
+  avatar_url: string;
+  hasUnviewed: boolean;
+}
 
 export default function Profile() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const [storyUsers, setStoryUsers] = useState<StoryUser[]>([]);
+  const [myStoryCount, setMyStoryCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -22,6 +33,7 @@ export default function Profile() {
   useEffect(() => {
     checkAuth();
     fetchCurrentUser();
+    fetchStoryUsers();
   }, []);
 
   useEffect(() => {
@@ -63,12 +75,114 @@ export default function Profile() {
     toast({ title: t("auth.logout"), description: t("common.success") });
   };
 
-  const handleAvatarClick = () => {
-    navigate("/personal-info");
-  };
+    const handleAvatarClick = () => {
+      navigate("/personal-info");
+    };
 
     const handleStoryClick = () => {
       navigate("/stories");
+    };
+
+    const fetchStoryUsers = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Get friends list
+        const { data: friendshipsData } = await supabase
+          .from("friendships")
+          .select("friend_id, user_id")
+          .eq("status", "accepted")
+          .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`);
+
+        const friendIds = new Set<string>();
+        friendIds.add(user.id);
+        friendshipsData?.forEach(f => {
+          if (f.user_id === user.id) {
+            friendIds.add(f.friend_id);
+          } else {
+            friendIds.add(f.user_id);
+          }
+        });
+
+        // Fetch stories from friends (not expired)
+        const { data: storiesData } = await supabase
+          .from("stories")
+          .select("id, user_id")
+          .in("user_id", Array.from(friendIds))
+          .gt("expires_at", new Date().toISOString());
+
+        if (!storiesData || storiesData.length === 0) {
+          setStoryUsers([]);
+          setMyStoryCount(0);
+          return;
+        }
+
+        // Count my stories
+        const myStoriesCount = storiesData.filter(s => s.user_id === user.id).length;
+        setMyStoryCount(myStoriesCount);
+
+        // Get unique users who have stories (excluding current user)
+        const userIds = [...new Set(storiesData.filter(s => s.user_id !== user.id).map(s => s.user_id))];
+      
+        if (userIds.length === 0) {
+          setStoryUsers([]);
+          return;
+        }
+
+        // Get profiles for these users
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url")
+          .in("id", userIds);
+
+        const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+
+        // Fetch viewed stories
+        const storyIds = storiesData.map(s => s.id);
+        const { data: viewsData } = await supabase
+          .from("story_views")
+          .select("story_id")
+          .eq("viewer_id", user.id)
+          .in("story_id", storyIds);
+
+        const viewedStoryIds = new Set(viewsData?.map(v => v.story_id) || []);
+
+        // Build story users array
+        const usersMap = new Map<string, { hasUnviewed: boolean }>();
+        storiesData.forEach(story => {
+          if (story.user_id === user.id) return;
+          const existing = usersMap.get(story.user_id) || { hasUnviewed: false };
+          if (!viewedStoryIds.has(story.id)) {
+            existing.hasUnviewed = true;
+          }
+          usersMap.set(story.user_id, existing);
+        });
+
+        const users: StoryUser[] = [];
+        usersMap.forEach((data, userId) => {
+          const profile = profilesMap.get(userId);
+          if (profile) {
+            users.push({
+              user_id: userId,
+              display_name: profile.display_name || "Unknown",
+              avatar_url: profile.avatar_url || "",
+              hasUnviewed: data.hasUnviewed
+            });
+          }
+        });
+
+        // Sort: users with unviewed stories first
+        users.sort((a, b) => {
+          if (a.hasUnviewed && !b.hasUnviewed) return -1;
+          if (!a.hasUnviewed && b.hasUnviewed) return 1;
+          return 0;
+        });
+
+        setStoryUsers(users.slice(0, 5)); // Show max 5 users
+      } catch (error) {
+        console.error("Error fetching story users:", error);
+      }
     };
 
   return (
@@ -100,19 +214,57 @@ export default function Profile() {
               <Copy className="h-3 w-3 text-purple-400 cursor-pointer hover:text-purple-600" onClick={handleCopyId} />
             </div>
             
-            {/* Story button */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleStoryClick}
-              className="w-fit h-7 px-3 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:from-purple-600 hover:to-pink-600"
-            >
-              <Video className="h-3 w-3 mr-1" />
-              动态
-            </Button>
-          </div>
-        </div>
-      </div>
+                  {/* Story row with button and friend avatars */}
+                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                    {/* My Story button */}
+                    <div 
+                      className="flex flex-col items-center gap-0.5 flex-shrink-0 cursor-pointer"
+                      onClick={handleStoryClick}
+                    >
+                      <div className={cn(
+                        "w-10 h-10 rounded-full p-0.5 relative",
+                        myStoryCount > 0 ? "bg-gradient-to-tr from-purple-500 to-pink-500" : "bg-gray-300"
+                      )}>
+                        <Avatar className="w-full h-full border-2 border-white">
+                          <AvatarImage src={currentUser?.avatar_url} />
+                          <AvatarFallback>Me</AvatarFallback>
+                        </Avatar>
+                        {myStoryCount === 0 && (
+                          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center border-2 border-white">
+                            <Plus className="h-2.5 w-2.5 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-gray-500">
+                        {myStoryCount > 0 ? "我的" : "发布"}
+                      </span>
+                    </div>
+              
+                    {/* Friends' Stories */}
+                    {storyUsers.map((user) => (
+                      <div 
+                        key={user.user_id}
+                        className="flex flex-col items-center gap-0.5 flex-shrink-0 cursor-pointer"
+                        onClick={handleStoryClick}
+                      >
+                        <div className={cn(
+                          "w-10 h-10 rounded-full p-0.5",
+                          user.hasUnviewed 
+                            ? "bg-gradient-to-tr from-purple-500 to-pink-500" 
+                            : "bg-gray-300"
+                        )}>
+                          <Avatar className="w-full h-full border-2 border-white">
+                            <AvatarImage src={user.avatar_url} />
+                            <AvatarFallback>{user.display_name[0]}</AvatarFallback>
+                          </Avatar>
+                        </div>
+                        <span className="text-[10px] text-gray-500 truncate max-w-10">{user.display_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
 
       {/* Menu sections */}
       <div className="px-4 space-y-4 mt-4">
