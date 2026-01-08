@@ -3,9 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, X, ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, X, ChevronLeft, Play, Pause, Volume2, VolumeX, Camera, Upload, Video } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Story {
   id: string;
@@ -31,9 +38,17 @@ export default function Stories() {
   const [loading, setLoading] = useState(true);
   const [usersWithStories, setUsersWithStories] = useState<UserWithStories[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>("");
   const [myStories, setMyStories] = useState<Story[]>([]);
   const [uploading, setUploading] = useState(false);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  
+  // Publish dialog state
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [caption, setCaption] = useState("");
   
   // Story viewer state
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -48,6 +63,12 @@ export default function Stories() {
     fetchStories();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    };
+  }, [videoPreviewUrl]);
+
   const fetchStories = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -56,6 +77,17 @@ export default function Stories() {
         return;
       }
       setCurrentUserId(user.id);
+
+      // Get current user's avatar
+      const { data: currentProfile } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .single();
+      
+      if (currentProfile) {
+        setCurrentUserAvatar(currentProfile.avatar_url || "");
+      }
 
       // Get friends list
       const { data: friendshipsData } = await supabase
@@ -165,7 +197,7 @@ export default function Stories() {
     }
   };
 
-  const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -179,31 +211,40 @@ export default function Stories() {
     const video = document.createElement('video');
     video.preload = 'metadata';
     
-    video.onloadedmetadata = async () => {
+    video.onloadedmetadata = () => {
       URL.revokeObjectURL(video.src);
       if (video.duration > 60) {
         toast.error("视频时长不能超过60秒");
         return;
       }
       
-      await uploadStory(file);
+      // Set selected video and open publish dialog
+      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+      setSelectedVideo(file);
+      setVideoPreviewUrl(URL.createObjectURL(file));
+      setPublishDialogOpen(true);
     };
     
     video.src = URL.createObjectURL(file);
   };
 
-  const uploadStory = async (file: File) => {
+  const handlePublish = async () => {
+    if (!selectedVideo) {
+      toast.error("请选择视频");
+      return;
+    }
+
     try {
       setUploading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const fileExt = file.name.split(".").pop();
+      const fileExt = selectedVideo.name.split(".").pop();
       const fileName = `stories/${user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("chat-files")
-        .upload(fileName, file);
+        .upload(fileName, selectedVideo);
 
       if (uploadError) throw uploadError;
 
@@ -211,25 +252,45 @@ export default function Stories() {
         .from("chat-files")
         .getPublicUrl(fileName);
 
-      // Create story record
+      // Create story record with caption
       const { error: insertError } = await supabase
         .from("stories")
         .insert({
           user_id: user.id,
-          video_url: publicUrl
+          video_url: publicUrl,
+          caption: caption.trim() || null
         });
 
       if (insertError) throw insertError;
 
       toast.success("动态发布成功");
+      
+      // Reset state
+      setPublishDialogOpen(false);
+      setSelectedVideo(null);
+      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+      setVideoPreviewUrl(null);
+      setCaption("");
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      if (cameraInputRef.current) cameraInputRef.current.value = "";
+      
       fetchStories();
     } catch (error) {
       console.error("Error uploading story:", error);
       toast.error("发布失败");
     } finally {
       setUploading(false);
-      if (videoInputRef.current) videoInputRef.current.value = "";
     }
+  };
+
+  const cancelPublish = () => {
+    setPublishDialogOpen(false);
+    setSelectedVideo(null);
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoPreviewUrl(null);
+    setCaption("");
+    if (videoInputRef.current) videoInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
   };
 
   const openViewer = (userIndex: number) => {
@@ -403,14 +464,29 @@ export default function Stories() {
                   : "点击发布动态"}
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => videoInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? "上传中..." : "发布"}
-            </Button>
+            {/* Publish buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-1"
+              >
+                <Camera className="h-4 w-4" />
+                拍摄
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => videoInputRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-1"
+              >
+                <Upload className="h-4 w-4" />
+                上传
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -464,7 +540,7 @@ export default function Stories() {
         )}
       </div>
 
-      {/* Hidden file input */}
+      {/* Hidden file inputs */}
       <input
         ref={videoInputRef}
         type="file"
@@ -472,6 +548,66 @@ export default function Stories() {
         className="hidden"
         onChange={handleVideoSelect}
       />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="video/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleVideoSelect}
+      />
+
+      {/* Publish Dialog */}
+      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>发布动态</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Video Preview */}
+            {videoPreviewUrl && (
+              <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
+                <video
+                  src={videoPreviewUrl}
+                  className="w-full h-full object-contain"
+                  controls
+                  playsInline
+                />
+              </div>
+            )}
+            
+            {/* Caption Input */}
+            <Textarea
+              placeholder="添加文字说明..."
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              className="resize-none"
+              rows={3}
+              maxLength={200}
+            />
+            <p className="text-xs text-gray-400 text-right">{caption.length}/200</p>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={cancelPublish}
+                disabled={uploading}
+              >
+                取消
+              </Button>
+              <Button
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                onClick={handlePublish}
+                disabled={uploading}
+              >
+                {uploading ? "发布中..." : "发布"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Story Viewer Modal */}
       {viewerOpen && usersWithStories[viewingUserIndex] && (

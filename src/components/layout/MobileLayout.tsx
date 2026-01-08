@@ -75,7 +75,11 @@ export default function MobileLayout() {
     "/delete-account",
     "/real-name-verification",
     "/search-friends",
-    "/lucky-draw"
+    "/lucky-draw",
+    "/stories",
+    "/moments",
+    "/shop",
+    "/nearby"
   ];
     
     if (subPages.includes(location.pathname) || location.pathname.startsWith("/chat/") || location.pathname.startsWith("/news/") || location.pathname.startsWith("/moment/")) {

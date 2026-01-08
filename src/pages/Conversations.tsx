@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
 import NewConversationDialog from "@/components/chat/NewConversationDialog";
 import { AvatarWithFrame } from "@/components/avatar/AvatarWithFrame";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface Conversation {
   id: string;
@@ -41,12 +43,23 @@ interface SystemMessage {
   created_at: string;
 }
 
+interface StoryUser {
+  user_id: string;
+  display_name: string;
+  avatar_url: string;
+  hasUnviewed: boolean;
+  storyCount: number;
+}
+
 export default function Conversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>("");
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
   const [systemMessages, setSystemMessages] = useState<SystemMessage[]>([]);
+  const [storyUsers, setStoryUsers] = useState<StoryUser[]>([]);
+  const [myStoryCount, setMyStoryCount] = useState(0);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [noteText, setNoteText] = useState("");
@@ -59,6 +72,7 @@ export default function Conversations() {
     checkAuth();
     fetchConversations();
     fetchSystemMessages();
+    fetchStoryUsers();
     getCurrentUserId();
 
     // Listen for conversation changes
@@ -146,6 +160,121 @@ export default function Conversations() {
 
     if (data) {
       setSystemMessages(data);
+    }
+  };
+
+  const fetchStoryUsers = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get current user's avatar
+      const { data: currentProfile } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .single();
+      
+      if (currentProfile) {
+        setCurrentUserAvatar(currentProfile.avatar_url || "");
+      }
+
+      // Get friends list
+      const { data: friendshipsData } = await supabase
+        .from("friendships")
+        .select("friend_id, user_id")
+        .eq("status", "accepted")
+        .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`);
+
+      const friendIds = new Set<string>();
+      friendIds.add(user.id); // Include current user
+      friendshipsData?.forEach(f => {
+        if (f.user_id === user.id) {
+          friendIds.add(f.friend_id);
+        } else {
+          friendIds.add(f.user_id);
+        }
+      });
+
+      // Fetch stories from friends (not expired)
+      const { data: storiesData } = await supabase
+        .from("stories")
+        .select("id, user_id")
+        .in("user_id", Array.from(friendIds))
+        .gt("expires_at", new Date().toISOString());
+
+      if (!storiesData || storiesData.length === 0) {
+        setStoryUsers([]);
+        setMyStoryCount(0);
+        return;
+      }
+
+      // Count my stories
+      const myStoriesCount = storiesData.filter(s => s.user_id === user.id).length;
+      setMyStoryCount(myStoriesCount);
+
+      // Get unique users who have stories (excluding current user)
+      const userIds = [...new Set(storiesData.filter(s => s.user_id !== user.id).map(s => s.user_id))];
+      
+      if (userIds.length === 0) {
+        setStoryUsers([]);
+        return;
+      }
+
+      // Get profiles for these users
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url")
+        .in("id", userIds);
+
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+
+      // Fetch viewed stories
+      const storyIds = storiesData.map(s => s.id);
+      const { data: viewsData } = await supabase
+        .from("story_views")
+        .select("story_id")
+        .eq("viewer_id", user.id)
+        .in("story_id", storyIds);
+
+      const viewedStoryIds = new Set(viewsData?.map(v => v.story_id) || []);
+
+      // Build story users array
+      const usersMap = new Map<string, { count: number; hasUnviewed: boolean }>();
+      storiesData.forEach(story => {
+        if (story.user_id === user.id) return; // Skip current user
+        const existing = usersMap.get(story.user_id) || { count: 0, hasUnviewed: false };
+        existing.count++;
+        if (!viewedStoryIds.has(story.id)) {
+          existing.hasUnviewed = true;
+        }
+        usersMap.set(story.user_id, existing);
+      });
+
+      const users: StoryUser[] = [];
+      usersMap.forEach((data, userId) => {
+        const profile = profilesMap.get(userId);
+        if (profile) {
+          users.push({
+            user_id: userId,
+            display_name: profile.display_name || "Unknown",
+            avatar_url: profile.avatar_url || "",
+            hasUnviewed: data.hasUnviewed,
+            storyCount: data.count
+          });
+        }
+      });
+
+      // Sort: users with unviewed stories first
+      users.sort((a, b) => {
+        if (a.hasUnviewed && !b.hasUnviewed) return -1;
+        if (!a.hasUnviewed && b.hasUnviewed) return 1;
+        return 0;
+      });
+
+      setStoryUsers(users);
+    } catch (error) {
+      console.error("Error fetching story users:", error);
     }
   };
 
@@ -407,6 +536,50 @@ export default function Conversations() {
           </DropdownMenu>
         </div>
         
+        {/* Stories Row - Telegram style */}
+        {(storyUsers.length > 0 || myStoryCount > 0) && (
+          <div className="flex items-center gap-3 py-3 overflow-x-auto scrollbar-hide -mx-5 px-5">
+            {/* My Story */}
+            <div 
+              className="flex flex-col items-center gap-1 flex-shrink-0 cursor-pointer"
+              onClick={() => navigate("/stories")}
+            >
+              <div className={cn(
+                "w-14 h-14 rounded-full p-0.5",
+                myStoryCount > 0 ? "bg-gradient-to-tr from-purple-500 to-pink-500" : "bg-gray-300"
+              )}>
+                <Avatar className="w-full h-full border-2 border-white">
+                  <AvatarImage src={currentUserAvatar} />
+                  <AvatarFallback>Me</AvatarFallback>
+                </Avatar>
+              </div>
+              <span className="text-[11px] text-gray-600 truncate max-w-14">我的</span>
+            </div>
+            
+            {/* Friends' Stories */}
+            {storyUsers.map((user) => (
+              <div 
+                key={user.user_id}
+                className="flex flex-col items-center gap-1 flex-shrink-0 cursor-pointer"
+                onClick={() => navigate("/stories")}
+              >
+                <div className={cn(
+                  "w-14 h-14 rounded-full p-0.5",
+                  user.hasUnviewed 
+                    ? "bg-gradient-to-tr from-purple-500 to-pink-500" 
+                    : "bg-gray-300"
+                )}>
+                  <Avatar className="w-full h-full border-2 border-white">
+                    <AvatarImage src={user.avatar_url} />
+                    <AvatarFallback>{user.display_name[0]}</AvatarFallback>
+                  </Avatar>
+                </div>
+                <span className="text-[11px] text-gray-600 truncate max-w-14">{user.display_name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-purple-400" />
