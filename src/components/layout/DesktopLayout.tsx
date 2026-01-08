@@ -1,7 +1,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MessageSquare, Users, UserCircle, MessageSquarePlus, UserPlus, Settings, ExternalLink } from "lucide-react";
+import { MessageSquare, Users, UserCircle, MessageSquarePlus, UserPlus, Settings, ExternalLink, Compass, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -158,11 +158,16 @@ export default function DesktopLayout() {
             <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem onClick={() => navigate("/profile")}>
                               <UserCircle className="h-4 w-4 mr-2" />
-                              个人资料
+                              个人中心
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/notification-settings")}>
-                通知设置
+              <DropdownMenuItem onClick={() => navigate("/discover")}>
+                <Compass className="h-4 w-4 mr-2" />
+                发现
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/personal-info")}>
+                <Edit className="h-4 w-4 mr-2" />
+                编辑资料
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/privacy-security")}>
                 隐私与安全

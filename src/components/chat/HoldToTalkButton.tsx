@@ -30,6 +30,10 @@ export default function HoldToTalkButton({ onSend, onRecordingChange, className 
   const CANCEL_THRESHOLD_X = -80; // Swipe left to cancel
   const CANCEL_THRESHOLD_Y = -80; // Swipe up to cancel
   const MIN_DURATION_MS = 500; // Minimum recording duration
+  const HOLD_DELAY_MS = 200; // Delay before starting recording to prevent accidental clicks
+  
+  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isHoldingRef = useRef<boolean>(false);
 
   useEffect(() => {
     onRecordingChange?.(isRecording);
@@ -204,8 +208,19 @@ export default function HoldToTalkButton({ onSend, onRecordingChange, className 
     
     startXRef.current = e.clientX;
     startYRef.current = e.clientY;
+    isHoldingRef.current = true;
     
-    startRecording();
+    // Clear any existing hold timer
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+    }
+    
+    // Delay starting recording to prevent accidental clicks
+    holdTimerRef.current = setTimeout(() => {
+      if (isHoldingRef.current) {
+        startRecording();
+      }
+    }, HOLD_DELAY_MS);
   }, [startRecording]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
@@ -227,6 +242,14 @@ export default function HoldToTalkButton({ onSend, onRecordingChange, className 
   const handlePointerUp = useCallback(async (e: React.PointerEvent) => {
     e.currentTarget.releasePointerCapture(e.pointerId);
     
+    // Clear hold timer if user released before delay
+    isHoldingRef.current = false;
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    
+    // If recording hasn't started yet (quick click), just return
     if (!isRecordingRef.current) return;
     
     if (isCancelling) {
@@ -245,7 +268,16 @@ export default function HoldToTalkButton({ onSend, onRecordingChange, className 
   }, [isCancelling, stopRecording, onSend]);
 
   const handlePointerCancel = useCallback(async () => {
-    await stopRecording(true);
+    // Clear hold timer
+    isHoldingRef.current = false;
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    
+    if (isRecordingRef.current) {
+      await stopRecording(true);
+    }
   }, [stopRecording]);
 
   const formatDuration = (seconds: number) => {
