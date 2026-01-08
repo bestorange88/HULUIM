@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import OfflineIndicator from "./components/pwa/OfflineIndicator";
 import PWAUpdatePrompt from "./components/pwa/PWAUpdatePrompt";
@@ -11,6 +11,14 @@ import GlobalCallManager from "./components/call/GlobalCallManager";
 import PushNotificationManager from "./components/push/PushNotificationManager";
 import { CallProvider } from "./contexts/CallContext";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
+
+// Detect if running in Electron environment
+const isElectron = typeof window !== 'undefined' && 
+  (window.navigator.userAgent.toLowerCase().includes('electron') || 
+   window.location.protocol === 'file:');
+
+// Use HashRouter for Electron (file:// protocol), BrowserRouter for web
+const Router = isElectron ? HashRouter : BrowserRouter;
 
 // Lazy load pages for better code splitting
 const Auth = lazy(() => import("./pages/Auth"));
@@ -212,16 +220,16 @@ function App() {
         <Sonner />
         <OfflineIndicator />
         <PWAUpdatePrompt />
-        <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* Admin routes - completely separate from user app, no call functionality */}
-              <Route path="/superadmin/*" element={<AdminApp />} />
-              {/* User routes - with call functionality */}
-              <Route path="/*" element={<UserApp />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+                <Router>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      {/* Admin routes - completely separate from user app, no call functionality */}
+                      <Route path="/superadmin/*" element={<AdminApp />} />
+                      {/* User routes - with call functionality */}
+                      <Route path="/*" element={<UserApp />} />
+                    </Routes>
+                  </Suspense>
+                </Router>
       </TooltipProvider>
     </QueryClientProvider>
   );
