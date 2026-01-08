@@ -536,49 +536,54 @@ export default function Conversations() {
           </DropdownMenu>
         </div>
         
-        {/* Stories Row - Telegram style */}
-        {(storyUsers.length > 0 || myStoryCount > 0) && (
-          <div className="flex items-center gap-3 py-3 overflow-x-auto scrollbar-hide -mx-5 px-5">
-            {/* My Story */}
+        {/* Stories Row - Telegram style - Always show */}
+        <div className="flex items-center gap-3 py-3 overflow-x-auto scrollbar-hide -mx-5 px-5">
+          {/* My Story - Always visible */}
+          <div 
+            className="flex flex-col items-center gap-1 flex-shrink-0 cursor-pointer"
+            onClick={() => navigate("/stories")}
+          >
+            <div className={cn(
+              "w-14 h-14 rounded-full p-0.5 relative",
+              myStoryCount > 0 ? "bg-gradient-to-tr from-purple-500 to-pink-500" : "bg-gray-300"
+            )}>
+              <Avatar className="w-full h-full border-2 border-white">
+                <AvatarImage src={currentUserAvatar} />
+                <AvatarFallback>Me</AvatarFallback>
+              </Avatar>
+              {myStoryCount === 0 && (
+                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center border-2 border-white">
+                  <Plus className="h-3 w-3 text-white" />
+                </div>
+              )}
+            </div>
+            <span className="text-[11px] text-gray-600 truncate max-w-14">
+              {myStoryCount > 0 ? "我的动态" : "发动态"}
+            </span>
+          </div>
+          
+          {/* Friends' Stories */}
+          {storyUsers.map((user) => (
             <div 
+              key={user.user_id}
               className="flex flex-col items-center gap-1 flex-shrink-0 cursor-pointer"
               onClick={() => navigate("/stories")}
             >
               <div className={cn(
                 "w-14 h-14 rounded-full p-0.5",
-                myStoryCount > 0 ? "bg-gradient-to-tr from-purple-500 to-pink-500" : "bg-gray-300"
+                user.hasUnviewed 
+                  ? "bg-gradient-to-tr from-purple-500 to-pink-500" 
+                  : "bg-gray-300"
               )}>
                 <Avatar className="w-full h-full border-2 border-white">
-                  <AvatarImage src={currentUserAvatar} />
-                  <AvatarFallback>Me</AvatarFallback>
+                  <AvatarImage src={user.avatar_url} />
+                  <AvatarFallback>{user.display_name[0]}</AvatarFallback>
                 </Avatar>
               </div>
-              <span className="text-[11px] text-gray-600 truncate max-w-14">我的</span>
+              <span className="text-[11px] text-gray-600 truncate max-w-14">{user.display_name}</span>
             </div>
-            
-            {/* Friends' Stories */}
-            {storyUsers.map((user) => (
-              <div 
-                key={user.user_id}
-                className="flex flex-col items-center gap-1 flex-shrink-0 cursor-pointer"
-                onClick={() => navigate("/stories")}
-              >
-                <div className={cn(
-                  "w-14 h-14 rounded-full p-0.5",
-                  user.hasUnviewed 
-                    ? "bg-gradient-to-tr from-purple-500 to-pink-500" 
-                    : "bg-gray-300"
-                )}>
-                  <Avatar className="w-full h-full border-2 border-white">
-                    <AvatarImage src={user.avatar_url} />
-                    <AvatarFallback>{user.display_name[0]}</AvatarFallback>
-                  </Avatar>
-                </div>
-                <span className="text-[11px] text-gray-600 truncate max-w-14">{user.display_name}</span>
-              </div>
-            ))}
-          </div>
-        )}
+          ))}
+        </div>
 
         {/* Search Bar */}
         <div className="relative">
