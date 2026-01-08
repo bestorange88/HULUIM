@@ -42,6 +42,7 @@ const Moments = lazy(() => import("./pages/Moments"));
 const Stories = lazy(() => import("./pages/Stories"));
 const Shop = lazy(() => import("./pages/Shop"));
 const NearbyPeople = lazy(() => import("./pages/NearbyPeople"));
+const FriendRequests = lazy(() => import("./pages/FriendRequests"));
 
 // Admin pages - lazy loaded
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -146,10 +147,11 @@ const UserApp: React.FC = () => {
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/delete-account" element={<DeleteAccount />} />
-                    <Route path="/search-friends" element={<SearchFriends />} />
-                    <Route path="/scan-qr" element={<ScanQRCode />} />
-                    <Route path="/system-messages" element={<SystemMessages />} />
-                    <Route path="/my-favorites" element={<MyFavorites />} />
+                                        <Route path="/search-friends" element={<SearchFriends />} />
+                                        <Route path="/scan-qr" element={<ScanQRCode />} />
+                                        <Route path="/system-messages" element={<SystemMessages />} />
+                                        <Route path="/my-favorites" element={<MyFavorites />} />
+                                        <Route path="/friend-requests" element={<FriendRequests />} />
                   </Route>
                   <Route path="/join/:code" element={<JoinGroup />} />
                   <Route path="*" element={<NotFound />} />
