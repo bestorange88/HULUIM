@@ -333,18 +333,7 @@ export default function Profile() {
           </Card>
         </div>
 
-        {/* Section 3: Logout */}
-        <Card className="overflow-hidden shadow-sm border-purple-100">
-          <Button onClick={handleLogout} variant="ghost" className="w-full p-4 justify-start hover:bg-purple-50/50 h-auto">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center">
-                <LogOut className="h-5 w-5 text-gray-500" />
               </div>
-              <span className="text-sm font-medium text-gray-700">退出登录</span>
-            </div>
-          </Button>
-        </Card>
-      </div>
 
       {/* QR Code Dialog */}
       <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>

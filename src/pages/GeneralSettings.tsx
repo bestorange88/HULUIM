@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, Globe, Palette, Type, Download, Wifi, Moon, Sun, Monitor } from "lucide-react";
+import { ArrowLeft, Globe, Palette, Type, Download, Wifi, Moon, Sun, Monitor, LogOut, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function GeneralSettings() {
   const navigate = useNavigate();
@@ -264,6 +265,53 @@ export default function GeneralSettings() {
                 }
               />
             </div>
+          </div>
+        </div>
+
+        {/* Account Management */}
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold text-muted-foreground px-2 flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            账号管理
+          </h2>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start p-4 h-auto rounded-lg bg-card border border-border hover:bg-accent/50"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate("/auth");
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg flex items-center justify-center">
+                  <UserPlus className="h-5 w-5 text-orange-500" />
+                </div>
+                <div className="text-left">
+                  <p className="text-base font-medium">切换账号</p>
+                  <p className="text-sm text-muted-foreground">退出当前账号并登录其他账号</p>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full justify-start p-4 h-auto rounded-lg bg-card border border-border hover:bg-destructive/10"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate("/auth");
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center">
+                  <LogOut className="h-5 w-5 text-gray-500" />
+                </div>
+                <div className="text-left">
+                  <p className="text-base font-medium">退出登录</p>
+                  <p className="text-sm text-muted-foreground">退出当前账号</p>
+                </div>
+              </div>
+            </Button>
           </div>
         </div>
       </div>
