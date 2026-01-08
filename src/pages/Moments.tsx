@@ -6,11 +6,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Send, Image as ImageIcon, X, Sparkles, Trash2, Scan, Video, Play, Camera, Upload } from "lucide-react";
+import { Heart, MessageCircle, Send, Image as ImageIcon, X, Sparkles, Trash2, Scan, Video, Play, Camera, Upload, ArrowLeft, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { MomentTags } from "@/components/moments/MomentTags";
 import { AvatarWithFrame } from "@/components/avatar/AvatarWithFrame";
-import Header from "@/components/layout/Header";
 import ImageViewer from "@/components/moments/ImageViewer";
 import {
   AlertDialog,
@@ -42,6 +41,13 @@ interface Moment {
 }
 
 
+interface UserProfile {
+  id: string;
+  display_name: string;
+  avatar_url: string;
+  cover_url?: string;
+}
+
 export default function Moments() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -65,10 +71,73 @@ export default function Moments() {
   const [likingMomentId, setLikingMomentId] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
 
-  useEffect(() => {
-    fetchMoments();
-  }, []);
+    useEffect(() => {
+      fetchMoments();
+      fetchUserProfile();
+    }, []);
+
+    const fetchUserProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url, cover_url")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          setUserProfile(profile);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
+    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      try {
+        setUploadingCover(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const fileExt = file.name.split(".").pop();
+        const fileName = `covers/${user.id}/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("chat-images")
+          .upload(fileName, file, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("chat-images")
+          .getPublicUrl(fileName);
+
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({ cover_url: publicUrl })
+          .eq("id", user.id);
+
+        if (updateError) throw updateError;
+
+        setUserProfile(prev => prev ? { ...prev, cover_url: publicUrl } : null);
+        toast.success("封面更新成功");
+      } catch (error) {
+        console.error("Error uploading cover:", error);
+        toast.error("封面上传失败");
+      } finally {
+        setUploadingCover(false);
+        if (coverInputRef.current) coverInputRef.current.value = "";
+      }
+    };
 
   useEffect(() => {
     return () => {
@@ -405,56 +474,132 @@ export default function Moments() {
   };
 
 
-  return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-background to-muted/20 overflow-hidden">
-      <Header 
-        title="朋友圈" 
-      />
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-4 pb-24">
-          {/* Create Moment Card */}
-          <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm overflow-hidden">
+    return (
+      <div className="flex flex-col h-full bg-gray-100 overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          {/* Cover Wall - WeChat Style */}
+          <div className="relative">
+            {/* Cover Image */}
             <div 
-              className="p-4 flex items-center gap-4 cursor-pointer hover:bg-accent/5 transition-all duration-200"
-              onClick={() => setShowPostDialog(true)}
+              className="h-72 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 relative overflow-hidden cursor-pointer"
+              onClick={() => coverInputRef.current?.click()}
             >
-              <div className="flex-shrink-0">
-                <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
-                    <Sparkles className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-              <div className="flex-1">
-                <p className="text-muted-foreground text-sm">分享你的想法...</p>
-              </div>
-              <div className="flex gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-9 w-9 text-primary hover:bg-primary/10 rounded-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setUploadMode('local');
-                    setShowPostDialog(true);
-                  }}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-9 w-9 text-accent hover:bg-accent/10 rounded-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setUploadMode('camera');
-                    setShowPostDialog(true);
-                  }}
-                >
-                  <Camera className="h-4 w-4" />
-                </Button>
-              </div>
+              {userProfile?.cover_url ? (
+                <img 
+                  src={userProfile.cover_url} 
+                  alt="Cover" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white/60">
+                    <ImagePlus className="h-8 w-8 mx-auto mb-2" />
+                    <p className="text-sm">点击更换封面</p>
+                  </div>
+                </div>
+              )}
+              {uploadingCover && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="text-white text-sm">上传中...</div>
+                </div>
+              )}
+              {/* Back button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-3 left-3 h-9 w-9 bg-black/30 hover:bg-black/50 text-white rounded-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.history.back();
+                }}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              {/* Camera icon for changing cover */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-3 right-3 h-9 w-9 bg-black/30 hover:bg-black/50 text-white rounded-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  coverInputRef.current?.click();
+                }}
+              >
+                <Camera className="h-4 w-4" />
+              </Button>
             </div>
+          
+            {/* User Avatar - positioned at bottom right of cover */}
+            <div className="absolute -bottom-10 right-4 flex items-end gap-3">
+              <span className="text-white font-semibold text-lg mb-3 drop-shadow-lg">
+                {userProfile?.display_name || "加载中..."}
+              </span>
+              <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
+                <AvatarImage src={userProfile?.avatar_url} />
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xl">
+                  {userProfile?.display_name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          
+            {/* Hidden cover input */}
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCoverUpload}
+            />
+          </div>
+
+          {/* Spacer for avatar overflow */}
+          <div className="h-14" />
+
+          {/* Create Moment Card */}
+          <div className="px-4 pt-2 pb-4">
+            <Card className="shadow-sm border-0 bg-white overflow-hidden">
+              <div 
+                className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-all duration-200"
+                onClick={() => setShowPostDialog(true)}
+              >
+                <div className="flex-shrink-0">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={userProfile?.avatar_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
+                      <Sparkles className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex-1">
+                  <p className="text-gray-400 text-sm">这一刻的想法...</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8 text-gray-500 hover:bg-gray-100 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setUploadMode('local');
+                      setShowPostDialog(true);
+                    }}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8 text-gray-500 hover:bg-gray-100 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setUploadMode('camera');
+                      setShowPostDialog(true);
+                    }}
+                  >
+                    <Camera className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
             {/* Post Dialog Content */}
             {showPostDialog && (
@@ -631,150 +776,144 @@ export default function Moments() {
             )}
           </Card>
 
-          {/* Moments Feed */}
-          <div className="space-y-3">
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-3"></div>
-                <p className="text-sm">加载中...</p>
-              </div>
-            ) : moments.length === 0 ? (
-              <Card className="p-8 text-center shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <Sparkles className="h-8 w-8 text-primary/60" />
-                </div>
-                <p className="text-foreground font-medium">暂无动态</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  快来发布第一条动态吧！
-                </p>
-              </Card>
-            ) : (
-              moments.map((moment) => (
-                <Card 
-                  key={moment.id} 
-                  className="shadow-lg border-0 bg-card/80 backdrop-blur-sm overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-200"
-                  onClick={() => navigate(`/moment/${moment.id}`)}
-                >
-                  <div className="p-4 flex gap-3">
-                    <AvatarWithFrame
-                      avatarUrl={moment.profiles?.avatar_url}
-                      displayName={moment.profiles?.display_name}
-                      size="md"
-                      className="cursor-pointer flex-shrink-0"
-                    />
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-sm text-foreground">
-                          {moment.profiles?.display_name || moment.profiles?.username}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">
-                            {formatTime(moment.created_at)}
-                          </span>
-                          {moment.user_id === currentUserId && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 hover:bg-destructive/10 rounded-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDeletingMoment(moment.id);
-                              }}
-                            >
-                              <Trash2 className="h-3.5 w-3.5 text-destructive/70" />
-                            </Button>
-                          )}
+                    {/* Moments Feed */}
+                    <div className="px-4 space-y-0 pb-24">
+                      {loading ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                          <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin mb-3"></div>
+                          <p className="text-sm">加载中...</p>
                         </div>
-                      </div>
+                      ) : moments.length === 0 ? (
+                        <div className="py-12 text-center">
+                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center">
+                            <Sparkles className="h-8 w-8 text-gray-400" />
+                          </div>
+                          <p className="text-gray-600 font-medium">暂无动态</p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            快来发布第一条动态吧！
+                          </p>
+                        </div>
+                      ) : (
+                        moments.map((moment) => (
+                          <div 
+                            key={moment.id} 
+                            className="py-4 border-b border-gray-200 last:border-b-0 cursor-pointer"
+                            onClick={() => navigate(`/moment/${moment.id}`)}
+                          >
+                            <div className="flex gap-3">
+                              <Avatar className="h-10 w-10 flex-shrink-0">
+                                <AvatarImage src={moment.profiles?.avatar_url} />
+                                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm">
+                                  {moment.profiles?.display_name?.charAt(0) || "U"}
+                                </AvatarFallback>
+                              </Avatar>
 
-                      <p className="text-sm whitespace-pre-wrap mb-3 text-foreground/90 leading-relaxed">
-                        {moment.content}
-                      </p>
+                          <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between mb-1">
+                                      <h3 className="font-medium text-sm text-blue-600">
+                                        {moment.profiles?.display_name || moment.profiles?.username}
+                                      </h3>
+                                      {moment.user_id === currentUserId && (
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 hover:bg-red-50 rounded-full -mt-1"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setDeletingMoment(moment.id);
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-gray-400" />
+                                        </Button>
+                                      )}
+                                    </div>
 
-                      {moment.images && moment.images.length > 0 && (
-                        <div className={`grid gap-1.5 mb-3 ${
-                          moment.images.length === 1 ? "grid-cols-1 max-w-[240px]" :
-                          moment.images.length === 2 ? "grid-cols-2 max-w-[280px]" :
-                          moment.images.length === 4 ? "grid-cols-2 max-w-[280px]" :
-                          "grid-cols-3 max-w-[320px]"
-                        }`}>
-                          {moment.images.map((img, idx) => (
-                            isVideoUrl(img) ? (
-                              <div key={idx} className="relative aspect-square bg-black rounded-xl overflow-hidden shadow-sm">
-                                <video
-                                  src={img}
-                                  className="w-full h-full object-cover"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const video = e.target as HTMLVideoElement;
-                                    if (video.paused) {
-                                      video.play();
-                                    } else {
-                                      video.pause();
-                                    }
-                                  }}
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/20">
-                                  <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
-                                    <Play className="h-6 w-6 text-white ml-0.5" />
+                                    <p className="text-sm whitespace-pre-wrap mb-2 text-gray-800 leading-relaxed">
+                                      {moment.content}
+                                    </p>
+
+                                    {moment.images && moment.images.length > 0 && (
+                                      <div className={`grid gap-1 mb-2 ${
+                                        moment.images.length === 1 ? "grid-cols-1 max-w-[200px]" :
+                                        moment.images.length === 2 ? "grid-cols-2 max-w-[240px]" :
+                                        moment.images.length === 4 ? "grid-cols-2 max-w-[240px]" :
+                                        "grid-cols-3 max-w-[280px]"
+                                      }`}>
+                                        {moment.images.map((img, idx) => (
+                                          isVideoUrl(img) ? (
+                                            <div key={idx} className="relative aspect-square bg-black rounded overflow-hidden">
+                                              <video
+                                                src={img}
+                                                className="w-full h-full object-cover"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  const video = e.target as HTMLVideoElement;
+                                                  if (video.paused) {
+                                                    video.play();
+                                                  } else {
+                                                    video.pause();
+                                                  }
+                                                }}
+                                              />
+                                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/20">
+                                                <div className="w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                                                  <Play className="h-5 w-5 text-white ml-0.5" />
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <img
+                                              key={idx}
+                                              src={img}
+                                              alt=""
+                                              className="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-90 transition-opacity"
+                                              onClick={(e) => handleImageClick(moment.images.filter(i => !isVideoUrl(i)), idx, e)}
+                                            />
+                                          )
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between mt-2">
+                                      <span className="text-xs text-gray-400">
+                                        {formatTime(moment.created_at)}
+                                      </span>
+                                      <div className="flex items-center gap-4">
+                                        <button
+                                          className={`flex items-center gap-1 text-xs ${
+                                            moment.user_liked ? "text-blue-500" : "text-gray-400"
+                                          }`}
+                                          disabled={likingMomentId === moment.id}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleLike(moment.id, moment.user_liked || false);
+                                          }}
+                                        >
+                                          <Heart
+                                            className={`h-4 w-4 ${moment.user_liked ? "fill-blue-500" : ""}`}
+                                          />
+                                          {moment.likes_count > 0 && <span>{moment.likes_count}</span>}
+                                        </button>
+                                        <button
+                                          className="flex items-center gap-1 text-xs text-gray-400"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/moment/${moment.id}`);
+                                          }}
+                                        >
+                                          <MessageCircle className="h-4 w-4" />
+                                          {moment.comments_count > 0 && <span>{moment.comments_count}</span>}
+                                        </button>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            ) : (
-                              <img
-                                key={idx}
-                                src={img}
-                                alt=""
-                                className="w-full aspect-square object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
-                                onClick={(e) => handleImageClick(moment.images.filter(i => !isVideoUrl(i)), idx, e)}
-                              />
-                            )
-                          ))}
+                            ))
+                          )}
                         </div>
-                      )}
-
-                      <div className="flex items-center gap-1 pt-3 mt-3 border-t border-border/50">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={`flex items-center gap-1.5 rounded-full px-3 transition-all duration-200 ${
-                            moment.user_liked 
-                              ? "text-primary bg-primary/10" 
-                              : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                          }`}
-                          disabled={likingMomentId === moment.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLike(moment.id, moment.user_liked || false);
-                          }}
-                        >
-                          <Heart
-                            className={`h-4 w-4 transition-transform ${moment.user_liked ? "fill-primary scale-110" : ""}`}
-                          />
-                          <span className="text-xs font-medium">{moment.likes_count || 0}</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex items-center gap-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-full px-3"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/moment/${moment.id}`);
-                          }}
-                        >
-                          <MessageCircle className="h-4 w-4" />
-                          <span className="text-xs font-medium">{moment.comments_count || 0}</span>
-                        </Button>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Image Viewer */}
       <ImageViewer

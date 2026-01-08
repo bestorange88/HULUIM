@@ -67,9 +67,9 @@ export default function Profile() {
     navigate("/personal-info");
   };
 
-  const handleStoryClick = () => {
-    toast({ description: "动态功能即将上线" });
-  };
+    const handleStoryClick = () => {
+      navigate("/moments");
+    };
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-b from-purple-50/30 to-white overflow-y-auto pb-20">
