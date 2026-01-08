@@ -8,7 +8,7 @@ export default function ChatDetail() {
   const navigate = useNavigate();
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-chat-bg overflow-hidden h-screen-safe max-h-screen-safe">
+    <div className="h-full w-full flex flex-col bg-chat-bg overflow-hidden">
       <ChatArea conversationId={conversationId || null} />
     </div>
   );

@@ -58,15 +58,25 @@ export default function DesktopLayout() {
     }
   };
 
-  // 判断当前页面是否应该显示内容
-  const shouldShowContent = location.pathname.startsWith("/chat/") ||
-                           location.pathname.startsWith("/profile") ||
-                           location.pathname.startsWith("/wallet") ||
-                           location.pathname.startsWith("/personal-info") ||
-                           location.pathname.startsWith("/notification-settings") ||
-                           location.pathname.startsWith("/privacy-security") ||
-                           location.pathname.startsWith("/general-settings") ||
-                           location.pathname.startsWith("/help-feedback");
+    // 判断当前页面是否应该显示内容
+    const shouldShowContent = location.pathname.startsWith("/chat/") ||
+                             location.pathname.startsWith("/profile") ||
+                             location.pathname.startsWith("/wallet") ||
+                             location.pathname.startsWith("/personal-info") ||
+                             location.pathname.startsWith("/notification-settings") ||
+                             location.pathname.startsWith("/privacy-security") ||
+                             location.pathname.startsWith("/general-settings") ||
+                             location.pathname.startsWith("/help-feedback") ||
+                             location.pathname.startsWith("/stories") ||
+                             location.pathname.startsWith("/moments") ||
+                             location.pathname.startsWith("/discover") ||
+                             location.pathname.startsWith("/search-friends") ||
+                             location.pathname.startsWith("/scan-qr") ||
+                             location.pathname.startsWith("/system-messages") ||
+                             location.pathname.startsWith("/my-favorites") ||
+                             location.pathname.startsWith("/friend-requests") ||
+                             location.pathname.startsWith("/groups") ||
+                             location.pathname.startsWith("/nearby");
 
   return (
     <div className="h-screen flex bg-background">
